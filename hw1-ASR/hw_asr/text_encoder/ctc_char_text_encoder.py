@@ -27,7 +27,7 @@ class CTCCharTextEncoder(CharTextEncoder):
                 if len(res) == 0 or last_blank or res[-1] != ind:
                     res.append(ind)
                 last_blank = False
-        return ''.join([self.ind2char[c] for c in res])
+        return ''.join([self.ind2char[c.item()] for c in res])
 
     def ctc_beam_search(self, probs: torch.tensor, beam_size: int = 100) -> List[Tuple[str, float]]:
         """
@@ -38,5 +38,5 @@ class CTCCharTextEncoder(CharTextEncoder):
         assert voc_size == len(self.ind2char)
         hypos = []
         # TODO: your code here
-        raise NotImplementedError
+        paths = {('', self.EMPTY_TOK) : 1.}
         return sorted(hypos, key=lambda x: x[1], reverse=True)
