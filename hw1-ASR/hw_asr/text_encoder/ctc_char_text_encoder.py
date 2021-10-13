@@ -18,8 +18,16 @@ class CTCCharTextEncoder(CharTextEncoder):
         self.char2ind = {v: k for k, v in self.ind2char.items()}
 
     def ctc_decode(self, inds: List[int]) -> str:
-        # TODO: your code here
-        raise NotImplementedError()
+        res = []
+        last_blank = False
+        for ind in inds:
+            if ind == self.char2ind[self.EMPTY_TOK]:
+                last_blank = True
+            else:
+                if len(res) == 0 or last_blank or res[-1] != ind:
+                    res.append(ind)
+                last_blank = False
+        return ''.join([self.ind2char[c] for c in res])
 
     def ctc_beam_search(self, probs: torch.tensor, beam_size: int = 100) -> List[Tuple[str, float]]:
         """
