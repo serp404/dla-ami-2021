@@ -1,6 +1,7 @@
 # Don't forget to support cases when target_text == ''
 import editdistance
 
+
 def calc_cer(target_text, predicted_text) -> float:
     if len(target_text) == 0 and len(predicted_text) == 0:
         return 1.0

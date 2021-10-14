@@ -1,6 +1,5 @@
-from typing import List, Tuple
-
 import torch
+from typing import List, Tuple
 
 from hw_asr.text_encoder.char_text_encoder import CharTextEncoder
 
@@ -38,5 +37,5 @@ class CTCCharTextEncoder(CharTextEncoder):
         assert voc_size == len(self.ind2char)
         hypos = []
         # TODO: your code here
-        paths = {('', self.EMPTY_TOK) : 1.}
+        paths = {('', self.EMPTY_TOK): 1.}
         return sorted(hypos, key=lambda x: x[1], reverse=True)

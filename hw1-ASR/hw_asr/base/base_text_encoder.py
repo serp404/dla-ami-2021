@@ -6,7 +6,7 @@ from torch import Tensor
 
 
 class BaseTextEncoder:
-    def encode(self, text) -> Tensor:
+    def encode(self, text: str) -> Tensor:
         raise NotImplementedError
 
     def decode(self, vector: Union[Tensor, np.ndarray, List[int]]):
