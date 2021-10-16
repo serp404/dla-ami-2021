@@ -1,6 +1,6 @@
 {
     "name": "checkpoint_config",
-    "n_gpu": 0,
+    "n_gpu": 1,
     "preprocessing": {
     "sr": 16000,
     "spectrogram": {
@@ -17,7 +17,7 @@
             "args": {
                 "n_feats": 128,
                 "fc_hidden": 256,
-                "rnn_hidden": 128,
+                "rnn_hidden": 256,
                 "num_layers": 3,
                 "bidirectional": true
             }
@@ -25,7 +25,7 @@
     "data": {
         "train": {
             "batch_size": 20,
-            "num_workers": 8,
+            "num_workers": 4,
             "datasets": [
                 {
                     "type": "LibrispeechDataset",
@@ -40,7 +40,7 @@
         },
         "val": {
             "batch_size": 20,
-            "num_workers": 8,
+            "num_workers": 4,
             "datasets": [
                 {
                     "type": "LibrispeechDataset",
@@ -57,7 +57,7 @@
     "optimizer": {
         "type": "Adam",
         "args": {
-            "lr": 0.001
+            "lr": 0.005
         }
     },
     "loss": {
@@ -79,16 +79,16 @@
         }
     ],
     "lr_scheduler": {
-        "type": "StepLR",
+        "type": "CosineAnnealingLR",
         "args": {
-            "step_size": 10, 
-            "gamma": 0.9
+            "T_max": 1000,
+            "eta_min": 0.0
         }
     },
     "trainer": {
-        "epochs": 500,
+        "epochs": 1000,
         "save_dir": "saved/",
-        "save_period": 100,
+        "save_period": 250,
         "verbosity": 0,
         "monitor": "off",
         "visualize": "wandb",
