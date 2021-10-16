@@ -72,7 +72,7 @@ def main(config, out_file):
                 )
 
     with Path(out_file).open("w") as f:
-        json.dump(results, f, indent=2)
+        json.dump(results, f, indent=4)
 
 
 if __name__ == "__main__":
