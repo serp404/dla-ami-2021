@@ -52,7 +52,9 @@ class Trainer(BaseTrainer):
         self.log_step = 10
 
         self.train_metrics = MetricTracker(
-            "loss", "grad norm", *[m.name for m in self.metrics], writer=self.writer
+            "loss", "grad norm",
+            *[m.name for m in self.metrics],
+            writer=self.writer
         )
         self.valid_metrics = MetricTracker(
             "loss", *[m.name for m in self.metrics], writer=self.writer
@@ -70,7 +72,8 @@ class Trainer(BaseTrainer):
     def _clip_grad_norm(self):
         if self.config["trainer"].get("grad_norm_clip", None) is not None:
             clip_grad_norm_(
-                self.model.parameters(), self.config["trainer"]["grad_norm_clip"]
+                self.model.parameters(),
+                self.config["trainer"]["grad_norm_clip"]
             )
 
     def _train_epoch(self, epoch):
@@ -205,13 +208,16 @@ class Trainer(BaseTrainer):
         # TODO: implement logging of beam search results
         if self.writer is None:
             return
-        predictions = log_probs.cpu().argmax(-1)
-        pred_texts = [self.text_encoder.ctc_decode(p) for p in predictions]
-        argmax_pred_texts = [
-            self.text_encoder.decode(p)[: int(l)]
-            for p, l in zip(predictions, log_probs_length)
+
+        argmax_ids = log_probs.cpu().argmax(-1)
+        argmax_ids = [
+            inds[: int(ind_len)]
+            for inds, ind_len in zip(argmax_ids, log_probs_length)
         ]
-        tuples = list(zip(pred_texts, text, argmax_pred_texts))
+        argmax_texts_raw = [self.text_encoder.decode(ids) for ids in argmax_ids]
+        argmax_texts = [self.text_encoder.ctc_decode(ids) for ids in argmax_ids]
+        tuples = list(zip(argmax_texts, text, argmax_texts_raw))
+
         shuffle(tuples)
         to_log_pred = []
         to_log_pred_raw = []
@@ -223,9 +229,11 @@ class Trainer(BaseTrainer):
                 f"| wer: {wer:.2f} | cer: {cer:.2f}"
             )
             to_log_pred_raw.append(f"true: '{target}' | pred: '{raw_pred}'\n")
-        self.writer.add_text(f"predictions", "< < < < > > > >".join(to_log_pred))
         self.writer.add_text(
-            f"predictions_raw", "< < < < > > > >".join(to_log_pred_raw)
+            "predictions", "< < < < > > > >".join(to_log_pred)
+        )
+        self.writer.add_text(
+            "predictions_raw", "< < < < > > > >".join(to_log_pred_raw)
         )
 
     def _log_spectrogram(self, spectrogram_batch):
