@@ -1,5 +1,5 @@
 {
-    "name": "default_config",
+    "name": "checkpoint_config",
     "n_gpu": 0,
     "preprocessing": {
     "sr": 16000,
@@ -13,10 +13,13 @@
         "spectrogram": []
     },
         "arch": {
-            "type": "BaselineModel",
+            "type": "CheckpointModel",
             "args": {
                 "n_feats": 128,
-                "fc_hidden": 512
+                "fc_hidden": 256,
+                "rnn_hidden": 128,
+                "num_layers": 3,
+                "bidirectional": true
             }
     },
     "data": {
@@ -27,9 +30,10 @@
                 {
                     "type": "LibrispeechDataset",
                     "args": {
-                        "part": "train-clean-100",
+                        "part": "dev-clean",
                         "max_audio_length": 20.0,
-                        "max_text_length": 200
+                        "max_text_length": 200,
+                        "limit": 20
                     }
                 }
             ]
@@ -43,16 +47,17 @@
                     "args": {
                         "part": "dev-clean",
                         "max_audio_length": 20.0,
-                        "max_text_length": 200
+                        "max_text_length": 200,
+                        "limit": 20
                     }
                 }
             ]
         }
     },
     "optimizer": {
-        "type": "SGD",
+        "type": "Adam",
         "args": {
-            "lr": 3e-4
+            "lr": 0.001
         }
     },
     "loss": {
@@ -74,25 +79,20 @@
         }
     ],
     "lr_scheduler": {
-        "type": "OneCycleLR",
+        "type": "StepLR",
         "args": {
-            "steps_per_epoch": 100,
-            "epochs": 50,
-            "anneal_strategy": "cos",
-            "max_lr": 4e-3,
-            "pct_start": 0.2
+            "step_size": 100, 
+            "gamma": 0.9
         }
     },
     "trainer": {
-        "epochs": 50,
+        "epochs": 3000,
         "save_dir": "saved/",
-        "save_period": 5,
-        "verbosity": 2,
-        "monitor": "min val_loss",
-        "early_stop": 100,
+        "save_period": 100,
+        "verbosity": 0,
+        "monitor": "off",
         "visualize": "wandb",
         "wandb_project": "asr_project",
-        "len_epoch": 100,
-        "grad_norm_clip": 10
+        "grad_norm_clip": 50
   }
 }
