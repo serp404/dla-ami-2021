@@ -63,7 +63,7 @@ class Trainer(BaseTrainer):
     @staticmethod
     def move_batch_to_device(batch, device: torch.device):
         """
-        Move all necessary tensors to the HPU
+        Move all necessary tensors to the GPU
         """
         for tensor_for_gpu in ["spectrogram", "text_encoded"]:
             batch[tensor_for_gpu] = batch[tensor_for_gpu].to(device)
