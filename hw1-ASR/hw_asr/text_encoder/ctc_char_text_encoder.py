@@ -1,6 +1,6 @@
 import torch
-from typing import List, Tuple
-
+from typing import List, Tuple, Dict
+from collections import defaultdict
 from hw_asr.text_encoder.char_text_encoder import CharTextEncoder
 
 
@@ -28,7 +28,20 @@ class CTCCharTextEncoder(CharTextEncoder):
                 last_blank = False
         return ''.join([self.ind2char[int(c)] for c in res])
 
-    def ctc_beam_search(self, probs: torch.tensor, probs_length, beam_size: int = 100) -> List[Tuple[str, float]]:
+    def _extend_and_merge(self, next_probs: torch.tensor, src_paths: Dict[Tuple[str, str], float]):
+        new_paths = defaultdict(float)
+        for next_char_ind, next_char_prob in enumerate(next_probs):
+            next_char = self.ind2char[next_char_ind]
+            for (text, last_char), path_prob in src_paths.items():
+                new_prefix = text if next_char == last_char else (text + next_char)
+                new_prefix = new_prefix.replace(self.EMPTY_TOK, '')
+                new_paths[(new_prefix, next_char)] += path_prob * next_char_prob
+        return new_paths
+
+    def _truncate_beam(self, paths, beam_size):
+        return dict(sorted(paths.items(), key=lambda x: x[1])[-beam_size:])
+
+    def ctc_beam_search(self, probs: torch.tensor, beam_size: int = 100) -> List[Tuple[str, float]]:
         """
         Performs beam search and returns a list of pairs
         (hypothesis, hypothesis probability).
@@ -37,6 +50,9 @@ class CTCCharTextEncoder(CharTextEncoder):
         char_length, voc_size = probs.shape
         assert voc_size == len(self.ind2char)
         hypos = []
-        # TODO: your code here
         paths = {('', self.EMPTY_TOK): 1.}
-        return sorted(hypos, key=lambda x: x[1], reverse=True)
+        for next_char_probs in probs:
+            paths = self._extend_and_merge(next_char_probs, paths)
+            paths = self._truncate_beam(paths, beam_size)
+        # return sorted(hypos, key=lambda x: x[1], reverse=True)
+        return [(prefix, score) for (prefix, _), score in sorted(paths.items(), key=lambda x: -x[1])]
