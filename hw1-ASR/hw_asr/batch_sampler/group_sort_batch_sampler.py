@@ -32,4 +32,4 @@ class GroupLengthBatchSampler(torch.utils.data.BatchSampler):
             yield batch
 
     def __len__(self):
-        return len(self.data)
+        return self.data_len // self.batch_size
