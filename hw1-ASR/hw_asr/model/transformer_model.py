@@ -53,17 +53,21 @@ class TransformerModel(BaseModel):
         return pos_encoding
 
     def forward(self, spectrogram, *args, **kwargs):
+        model_device = next(self.parameters()).device
         batch = spectrogram.permute(0, 2, 1)
 
         seq_len = batch.shape[1]
         if seq_len <= self.default_len:
-            pos_encodgins = self.position_encodings[:seq_len, :]
+            pos_encodgins = self.position_encodings[:seq_len, :].to(model_device)
         else:
             pos_encodgins = self._generate_pos_encodings(
                 seq_len,
                 self.fc_hidden
-            )
+            ).to(model_device)
 
         transformer_input = (self.input_fc(batch) + pos_encodgins).permute(1, 0, 2)
         enc_output = self.transformer(transformer_input)
         return {"logits": self.output_fc(enc_output.permute(1, 0, 2))}
+
+    def transform_input_lengths(self, input_lengths):
+        return input_lengths  # we don't reduce time dimension here
