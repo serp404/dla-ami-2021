@@ -61,7 +61,7 @@ class BaseDataset(Dataset):
             "audio": audio_wave,
             "spectrogram": audio_spec,
             "duration": data_dict["audio_len"],
-            "text": data_dict["text"],
+            "text": self.text_encoder.normalize_text(data_dict["text"]),
             "text_encoded": self.text_encoder.encode(data_dict["text"]),
             "audio_path": audio_path,
         }
