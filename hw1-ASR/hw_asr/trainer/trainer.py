@@ -53,11 +53,13 @@ class Trainer(BaseTrainer):
 
         self.train_metrics = MetricTracker(
             "loss", "grad norm",
-            *[m.name for m in self.metrics],
+            *[m.name for m in self.metrics if m.split is None or m.split == "train"],
             writer=self.writer
         )
         self.valid_metrics = MetricTracker(
-            "loss", *[m.name for m in self.metrics], writer=self.writer
+            "loss",
+            *[m.name for m in self.metrics if m.split is None or m.split == "val"],
+            writer=self.writer
         )
 
     @staticmethod
@@ -153,7 +155,13 @@ class Trainer(BaseTrainer):
 
         metrics.update("loss", batch["loss"].item())
         for met in self.metrics:
-            metrics.update(met.name, met(**batch))
+            if met.split is None:
+                metrics.update(met.name, met(**batch))
+            else:
+                if is_train and met.split == "train":
+                    metrics.update(met.name, met(**batch))
+                elif not is_train and met.split == "val":
+                    metrics.update(met.name, met(**batch))
         return batch
 
     def _valid_epoch(self, epoch):

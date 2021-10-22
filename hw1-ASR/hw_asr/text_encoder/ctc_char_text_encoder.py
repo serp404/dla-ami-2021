@@ -38,21 +38,20 @@ class CTCCharTextEncoder(CharTextEncoder):
                 new_paths[(new_prefix, next_char)] += path_prob * next_char_prob
         return new_paths
 
-    def _truncate_beam(self, paths, beam_size):
-        return dict(sorted(paths.items(), key=lambda x: x[1])[-beam_size:])
+    def _truncate_beam(self, paths: Dict[Tuple[str, str], float], beam_size: int):
+        return dict(sorted(paths.items(), key=lambda x: x[1], reverse=True)[:beam_size])
 
-    def ctc_beam_search(self, probs: torch.tensor, beam_size: int = 100) -> List[Tuple[str, float]]:
+    def ctc_beam_search(self, probs: torch.tensor, beam_size: int = 25) -> List[Tuple[str, float]]:
         """
         Performs beam search and returns a list of pairs
         (hypothesis, hypothesis probability).
         """
         assert len(probs.shape) == 2
-        char_length, voc_size = probs.shape
+        _, voc_size = probs.shape
         assert voc_size == len(self.ind2char)
-        hypos = []
+
         paths = {('', self.EMPTY_TOK): 1.}
-        for next_char_probs in probs:
-            paths = self._extend_and_merge(next_char_probs, paths)
+        for next_probs in probs:
+            paths = self._extend_and_merge(next_probs, paths)
             paths = self._truncate_beam(paths, beam_size)
-        # return sorted(hypos, key=lambda x: x[1], reverse=True)
-        return [(prefix, score) for (prefix, _), score in sorted(paths.items(), key=lambda x: -x[1])]
+        return [(el[0][0], el[1]) for el in sorted(paths.items(), key=lambda x: x[1], reverse=True)]

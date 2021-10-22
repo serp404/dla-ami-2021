@@ -1,5 +1,5 @@
 {
-    "name": "checkpoint_config",
+    "name": "transformer_config",
     "n_gpu": 1,
     "preprocessing": {
         "sr": 16000,
@@ -13,39 +13,23 @@
         "spectrogram": []
     },
     "arch": {
-        "type": "CheckpointModel",
+        "type": "TransformerModel",
         "args": {
             "n_feats": 128,
             "fc_hidden": 256,
-            "rnn_hidden": 256,
-            "num_layers": 3,
-            "bidirectional": true
+            "tr_hidden": 512,
+            "n_layers": 5,
+            "n_head": 5,
+            "dropout": 0.25
         }
     },
     "data": {
         "train": {
             "batch_sampler": {
                 "type": "GroupLengthBatchSampler",
-                "args": {
-                    "batch_size": 20,
-                    "group_size": 200
-                }
+                "batch_size": 40,
+                "group_size": 800
             },
-            "num_workers": 4,
-            "datasets": [
-                {
-                    "type": "LibrispeechDataset",
-                    "args": {
-                        "part": "dev-clean",
-                        "max_audio_length": 40.0,
-                        "max_text_length": 500,
-                        "limit": 1000
-                    }
-                }
-            ]
-        },
-        "val": {
-            "batch_size": 20,
             "num_workers": 4,
             "datasets": [
                 {
@@ -55,6 +39,20 @@
                         "max_audio_length": 20.0,
                         "max_text_length": 200,
                         "limit": 20
+                    }
+                }
+            ]
+        },
+        "val": {
+            "batch_size": 40,
+            "num_workers": 4,
+            "datasets": [
+                {
+                    "type": "LibrispeechDataset",
+                    "args": {
+                        "part": "dev-clean",
+                        "max_audio_length": 20.0,
+                        "max_text_length": 200
                     }
                 }
             ]
@@ -74,13 +72,29 @@
         {
             "type": "ArgmaxWERMetric",
             "args": {
-                "name": "WER (argmax)"
+                "name": "WER (argmax)",
+                "split": "train"
             }
         },
         {
             "type": "ArgmaxCERMetric",
             "args": {
-                "name": "CER (argmax)"
+                "name": "CER (argmax)",
+                "split": "train"
+            }
+        },
+        {
+            "type": "BeamSearchWERMetric",
+            "args": {
+                "name": "WER (beam_search)",
+                "split": "val"
+            }
+        },
+        {
+            "type": "BeamSearchCERMetric",
+            "args": {
+                "name": "CER (beam_search)",
+                "split": "val"
             }
         }
     ],
@@ -94,7 +108,7 @@
     "trainer": {
         "epochs": 1000,
         "save_dir": "saved/",
-        "save_period": 250,
+        "save_period": 50,
         "verbosity": 0,
         "monitor": "off",
         "visualize": "wandb",
