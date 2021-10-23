@@ -3,6 +3,7 @@ import logging
 import os
 import shutil
 from pathlib import Path
+from torch.utils import data
 
 import torchaudio
 from speechbrain.utils.data_utils import download_file
@@ -31,10 +32,11 @@ class LibrispeechDataset(BaseDataset):
         assert part in URL_LINKS or part == 'train_all'
 
         if data_dir is None:
-            data_dir = ROOT_PATH / "data" / "datasets" / "librispeech"
-            data_dir.mkdir(exist_ok=True, parents=True)
+            self._data_dir = ROOT_PATH / "data" / "datasets" / "librispeech"
+            self._data_dir.mkdir(exist_ok=True, parents=True)
+        else:
+            self._data_dir = Path(data_dir)
 
-        self._data_dir = data_dir
         if part == 'train_all':
             index = sum([self._get_or_load_index(part)
                          for part in URL_LINKS if 'train' in part], [])
