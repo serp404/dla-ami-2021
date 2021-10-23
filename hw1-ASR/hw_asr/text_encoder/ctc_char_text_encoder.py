@@ -1,6 +1,7 @@
 import torch
-from typing import List, Tuple, Dict
-from collections import defaultdict
+from typing import List
+from fast_ctc_decode import beam_search
+
 from hw_asr.text_encoder.char_text_encoder import CharTextEncoder
 
 
@@ -15,6 +16,7 @@ class CTCCharTextEncoder(CharTextEncoder):
         for text in alphabet:
             self.ind2char[max(self.ind2char.keys()) + 1] = text
         self.char2ind = {v: k for k, v in self.ind2char.items()}
+        self.final_alphabet = self.EMPTY_TOK + "".join(alphabet)
 
     def ctc_decode(self, inds: List[int]) -> str:
         res = []
@@ -28,20 +30,35 @@ class CTCCharTextEncoder(CharTextEncoder):
                 last_blank = False
         return ''.join([self.ind2char[int(c)] for c in res])
 
-    def _extend_and_merge(self, next_probs: torch.tensor, src_paths: Dict[Tuple[str, str], float]):
-        new_paths = defaultdict(float)
-        for next_char_ind, next_char_prob in enumerate(next_probs):
-            next_char = self.ind2char[next_char_ind]
-            for (text, last_char), path_prob in src_paths.items():
-                new_prefix = text if next_char == last_char else (text + next_char)
-                new_prefix = new_prefix.replace(self.EMPTY_TOK, '')
-                new_paths[(new_prefix, next_char)] += path_prob * next_char_prob
-        return new_paths
+    # def _extend_and_merge(self, next_probs: torch.tensor, src_paths: Dict[Tuple[str, str], float]):
+    #     new_paths = defaultdict(float)
+    #     for next_char_ind, next_char_prob in enumerate(next_probs):
+    #         next_char = self.ind2char[next_char_ind]
+    #         for (text, last_char), path_prob in src_paths.items():
+    #             new_prefix = text if next_char == last_char else (text + next_char)
+    #             new_prefix = new_prefix.replace(self.EMPTY_TOK, '')
+    #             new_paths[(new_prefix, next_char)] += path_prob * next_char_prob
+    #     return new_paths
 
-    def _truncate_beam(self, paths: Dict[Tuple[str, str], float], beam_size: int):
-        return dict(sorted(paths.items(), key=lambda x: x[1], reverse=True)[:beam_size])
+    # def _truncate_beam(self, paths: Dict[Tuple[str, str], float], beam_size: int):
+    #     return dict(sorted(paths.items(), key=lambda x: x[1], reverse=True)[:beam_size])
 
-    def ctc_beam_search(self, probs: torch.tensor, beam_size: int = 25) -> List[Tuple[str, float]]:
+    # def ctc_beam_search(self, probs: torch.tensor, beam_size: int = 25) -> List[Tuple[str, float]]:
+    #     """
+    #     Performs beam search and returns a list of pairs
+    #     (hypothesis, hypothesis probability).
+    #     """
+    #     assert len(probs.shape) == 2
+    #     _, voc_size = probs.shape
+    #     assert voc_size == len(self.ind2char)
+
+    #     paths = {('', self.EMPTY_TOK): 1.}
+    #     for next_probs in probs:
+    #         paths = self._extend_and_merge(next_probs, paths)
+    #         paths = self._truncate_beam(paths, beam_size)
+    #     return [(el[0][0], el[1]) for el in sorted(paths.items(), key=lambda x: x[1], reverse=True)]
+
+    def ctc_beam_search(self, probs: torch.tensor, beam_size: int = 25) -> str:
         """
         Performs beam search and returns a list of pairs
         (hypothesis, hypothesis probability).
@@ -50,8 +67,9 @@ class CTCCharTextEncoder(CharTextEncoder):
         _, voc_size = probs.shape
         assert voc_size == len(self.ind2char)
 
-        paths = {('', self.EMPTY_TOK): 1.}
-        for next_probs in probs:
-            paths = self._extend_and_merge(next_probs, paths)
-            paths = self._truncate_beam(paths, beam_size)
-        return [(el[0][0], el[1]) for el in sorted(paths.items(), key=lambda x: x[1], reverse=True)]
+        seq, _ = beam_search(
+            probs.numpy(),
+            self.final_alphabet,
+            beam_size=beam_size
+        )
+        return seq
