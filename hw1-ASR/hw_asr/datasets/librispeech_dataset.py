@@ -32,7 +32,7 @@ class LibrispeechDataset(BaseDataset):
         assert part in URL_LINKS or part == 'train_all'
 
         if data_dir is None:
-            self._data_dir = ROOT_PATH / "data" / "datasets" / "librispeech"
+            self._data_dir = Path(ROOT_PATH) / "data" / "datasets" / "librispeech"
             self._data_dir.mkdir(exist_ok=True, parents=True)
         else:
             self._data_dir = Path(data_dir)
