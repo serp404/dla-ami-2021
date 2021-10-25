@@ -32,7 +32,7 @@ class Trainer(BaseTrainer):
             valid_data_loader=None,
             lr_scheduler=None,
             len_epoch=None,
-            skip_oom=True,
+            skip_oom=False,
     ):
         super().__init__(model, criterion, metrics, optimizer, config, device)
         self.skip_oom = skip_oom
