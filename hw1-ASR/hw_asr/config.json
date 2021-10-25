@@ -1,5 +1,5 @@
 {
-    "name": "transformer_config",
+    "name": "gru_aug_config",
     "n_gpu": 1,
     "preprocessing": {
         "sr": 16000,
@@ -9,18 +9,31 @@
         }
     },
     "augmentations": {
-        "wave": [],
-        "spectrogram": []
+        "wave": [
+            {
+                "type": "PeakNormalization",
+                "args": {},
+                "random": 0.3
+            }
+        ],
+        "spectrogram": [
+            {
+                "type": "FrequencyMasking",
+                "args": {
+                    "freq_mask_param": 10
+                },
+                "random": 0.3
+            }
+        ]
     },
     "arch": {
-        "type": "TransformerModel",
+        "type": "CheckpointModel",
         "args": {
             "n_feats": 128,
-            "fc_hidden": 256,
-            "tr_hidden": 512,
-            "n_layers": 5,
-            "n_head": 4,
-            "dropout": 0.25
+            "fc_hidden": 512,
+            "rnn_hidden": 256,
+            "num_layers": 3,
+            "bidirectional": true
         }
     },
     "data": {
@@ -28,32 +41,32 @@
             "batch_sampler": {
                 "type": "GroupLengthBatchSampler",
                 "args": {
-                    "batch_size": 32,
-                    "group_size": 256
+                    "batch_size": 128,
+                    "group_size": 512
                 }
             },
-            "num_workers": 4,
-            "datasets": [
-                {
-                    "type": "LibrispeechDataset",
-                    "args": {
-                        "part": "train-clean-100",
-                        "max_audio_length": 20.0,
-                        "max_text_length": 200
-                    }
-                }
-            ]
-        },
-        "val": {
-            "batch_size": 32,
-            "num_workers": 4,
+            "num_workers": 8,
             "datasets": [
                 {
                     "type": "LibrispeechDataset",
                     "args": {
                         "part": "dev-clean",
-                        "max_audio_length": 20.0,
-                        "max_text_length": 200
+                        "max_audio_length": 25.0,
+                        "max_text_length": 300
+                    }
+                }
+            ]
+        },
+        "val": {
+            "batch_size": 128,
+            "num_workers": 8,
+            "datasets": [
+                {
+                    "type": "LibrispeechDataset",
+                    "args": {
+                        "part": "dev-clean",
+                        "max_audio_length": 25.0,
+                        "max_text_length": 300
                     }
                 }
             ]
@@ -62,7 +75,8 @@
     "optimizer": {
         "type": "Adam",
         "args": {
-            "lr": 0.005
+            "lr": 0.005,
+            "weight_decay": 0.00001
         }
     },
     "loss": {
@@ -102,17 +116,19 @@
     "lr_scheduler": {
         "type": "CosineAnnealingLR",
         "args": {
-            "T_max": 1000,
-            "eta_min": 0.0
+            "T_max": 100,
+            "eta_min": 0.00001
         }
     },
     "trainer": {
-        "epochs": 1000,
+        "epochs": 100,
+        "len_epoch": 200,
         "save_dir": "saved/",
-        "save_period": 50,
+        "save_period": 5,
         "verbosity": 0,
         "monitor": "off",
         "visualize": "wandb",
-        "wandb_project": "asr_project"
+        "wandb_project": "asr_project",
+        "grad_norm_clip": 6
   }
 }
