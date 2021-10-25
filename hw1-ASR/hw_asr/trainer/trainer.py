@@ -107,6 +107,10 @@ class Trainer(BaseTrainer):
                     continue
                 else:
                     raise e
+
+            if self.lr_scheduler is not None:
+                self.lr_scheduler.step()
+
             self.train_metrics.update("grad norm", self.get_grad_norm())
             if batch_idx % self.log_step == 0:
                 self.writer.set_step((epoch - 1) * self.len_epoch + batch_idx)
@@ -121,6 +125,7 @@ class Trainer(BaseTrainer):
                 self._log_predictions(part="train", **batch)
                 self._log_spectrogram(batch["spectrogram"])
                 self._log_scalars(self.train_metrics)
+
             if batch_idx >= self.len_epoch:
                 break
         log = self.train_metrics.result()
@@ -150,8 +155,6 @@ class Trainer(BaseTrainer):
             batch["loss"].backward()
             self._clip_grad_norm()
             self.optimizer.step()
-            if self.lr_scheduler is not None:
-                self.lr_scheduler.step()
 
         metrics.update("loss", batch["loss"].item())
         for met in self.metrics:
