@@ -108,9 +108,6 @@ class Trainer(BaseTrainer):
                 else:
                     raise e
 
-            if self.lr_scheduler is not None:
-                self.lr_scheduler.step()
-
             self.train_metrics.update("grad norm", self.get_grad_norm())
             if batch_idx % self.log_step == 0:
                 self.writer.set_step((epoch - 1) * self.len_epoch + batch_idx)
@@ -128,8 +125,11 @@ class Trainer(BaseTrainer):
 
             if batch_idx >= self.len_epoch:
                 break
-        log = self.train_metrics.result()
 
+        if self.lr_scheduler is not None:
+            self.lr_scheduler.step()
+
+        log = self.train_metrics.result()
         if self.do_validation:
             val_log = self._valid_epoch(epoch)
             log.update(**{"val_" + k: v for k, v in val_log.items()})
