@@ -13,12 +13,20 @@ from hw_asr.utils import read_json, write_json, ROOT_PATH
 class ConfigParser:
     def __init__(self, config, resume=None, modification=None, run_id=None):
         """
-        class to parse configuration json file. Handles hyperparameters for training, initializations of modules, checkpoint saving
+        class to parse configuration json file. Handles hyperparameters for
+        training,initializations of modules, checkpoint saving
         and logging module.
-        :param config: Dict containing configurations, hyperparameters for training. contents of `config.json` file for example.
+
+        :param config: Dict containing configurations, hyperparameters for
+            training. contents of `config.json` file for example.
+
         :param resume: String, path to the checkpoint being loaded.
-        :param modification: Dict keychain:value, specifying position values to be replaced from config dict.
-        :param run_id: Unique Identifier for training processes. Used to save checkpoints and training log. Timestamp is being used as default
+
+        :param modification: Dict keychain:value, specifying position values
+            to be replaced from config dict.
+
+        :param run_id: Unique Identifier for training processes. Used to save
+            checkpoints and training log. Timestamp is being used as default
         """
         # load config file and apply modification
         self._config = _update_config(config, modification)
@@ -43,7 +51,11 @@ class ConfigParser:
 
         # configure logging module
         setup_logging(self.log_dir)
-        self.log_levels = {0: logging.WARNING, 1: logging.INFO, 2: logging.DEBUG}
+        self.log_levels = {
+            0: logging.WARNING,
+            1: logging.INFO,
+            2: logging.DEBUG
+        }
 
     @classmethod
     def from_args(cls, args, options=""):
@@ -61,7 +73,7 @@ class ConfigParser:
             resume = Path(args.resume)
             cfg_fname = resume.parent / "config.json"
         else:
-            msg_no_cfg = "Configuration file need to be specified. Add '-c config.json', for example."
+            msg_no_cfg = " Specify config file via '-c config.json'."
             assert args.config is not None, msg_no_cfg
             resume = None
             cfg_fname = Path(args.config)
@@ -73,14 +85,16 @@ class ConfigParser:
 
         # parse custom cli options into dictionary
         modification = {
-            opt.target: getattr(args, _get_opt_name(opt.flags)) for opt in options
+            opt.target: getattr(args, _get_opt_name(opt.flags))
+            for opt in options
         }
         return cls(config, resume, modification)
 
     def init_obj(self, obj_dict, module, *args, **kwargs):
         """
-        Finds a function handle with the name given as 'type' in config, and returns the
-        instance initialized with corresponding arguments given.
+        Finds a function handle with the name given as 'type' in config,
+        and returns the instance initialized with
+        corresponding arguments given.
 
         `object = config.init_obj(config['param'], module, a, b=1)`
         is equivalent to
@@ -96,12 +110,13 @@ class ConfigParser:
 
     def init_ftn(self, name, module, *args, **kwargs):
         """
-        Finds a function handle with the name given as 'type' in config, and returns the
-        function with given arguments fixed with functools.partial.
+        Finds a function handle with the name given as 'type' in config,
+        and returns the function with given arguments fixed
+        with functools.partial.
 
         `function = config.init_ftn('name', module, a, b=1)`
-        is equivalent to
-        `function = lambda *args, **kwargs: module.name(a, *args, b=1, **kwargs)`.
+        is equivalent to `function =
+        lambda *args, **kwargs: module.name(a, *args, b=1, **kwargs)`.
         """
         module_name = self[name]["type"]
         module_args = dict(self[name]["args"])
@@ -116,7 +131,7 @@ class ConfigParser:
         return self.config[name]
 
     def get_logger(self, name, verbosity=2):
-        msg_verbosity = "verbosity option {} is invalid. Valid options are {}.".format(
+        msg_verbosity = "Verbosity option {} is invalid. Valid are {}.".format(
             verbosity, self.log_levels.keys()
         )
         assert verbosity in self.log_levels, msg_verbosity

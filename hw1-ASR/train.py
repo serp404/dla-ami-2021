@@ -34,7 +34,11 @@ def main(config):
     dataloaders = get_dataloaders(config, text_encoder)
 
     # build model architecture, then print to console
-    model = config.init_obj(config["arch"], module_arch, n_class=len(text_encoder))
+    model = config.init_obj(
+        config["arch"],
+        module_arch,
+        n_class=len(text_encoder)
+    )
     logger.info(model)
 
     # prepare for (multi-device) GPU training
@@ -53,8 +57,17 @@ def main(config):
     # build optimizer, learning rate scheduler.
     # delete every lines containing lr_scheduler for disabling scheduler
     trainable_params = filter(lambda p: p.requires_grad, model.parameters())
-    optimizer = config.init_obj(config["optimizer"], torch.optim, trainable_params)
-    lr_scheduler = config.init_obj(config["lr_scheduler"], torch.optim.lr_scheduler, optimizer)
+    optimizer = config.init_obj(
+        config["optimizer"],
+        torch.optim,
+        trainable_params
+    )
+
+    lr_scheduler = config.init_obj(
+        config["lr_scheduler"],
+        torch.optim.lr_scheduler,
+        optimizer
+    )
 
     trainer = Trainer(
         model,
@@ -97,13 +110,21 @@ if __name__ == "__main__":
         help="indices of GPUs to enable (default: all)",
     )
 
-    # custom cli options to modify configuration from default values given in json file.
+    # custom cli options to modify configuration from
+    # default values given in json file.
+
     CustomArgs = collections.namedtuple("CustomArgs", "flags type target")
     options = [
-        CustomArgs(["--lr", "--learning_rate"], type=float, target="optimizer;args;lr"),
         CustomArgs(
-            ["--bs", "--batch_size"], type=int, target="data_loader;args;batch_size"
+            ["--lr", "--learning_rate"],
+            type=float,
+            target="optimizer;args;lr"
         ),
+        CustomArgs(
+            ["--bs", "--batch_size"],
+            type=int,
+            target="data_loader;args;batch_size"
+        )
     ]
     config = ConfigParser.from_args(args, options)
     main(config)
