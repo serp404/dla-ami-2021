@@ -25,17 +25,15 @@ class ArgmaxWERMetric(BaseMetric):
 
 
 class BeamSearchWERMetric(BaseMetric):
-    def __init__(self, text_encoder: BaseTextEncoder, beam_size: int = 10, *args, **kwargs):
+    def __init__(self, text_encoder: BaseTextEncoder, *args, **kwargs):
         super().__init__(*args, **kwargs)
         assert hasattr(text_encoder, "ctc_beam_search"), "No beam search available for this encoder"
         self.text_encoder = text_encoder
-        self.beam_size = beam_size
 
     def __call__(self, log_probs: Tensor, text: List[str], *args, **kwargs):
         wers = []
-        probs = torch.exp(log_probs).cpu()
+        preds = self.text_encoder.ctc_beam_search(log_probs.cpu())
 
-        for prob, target_text in zip(probs, text):
-            pred_text = self.text_encoder.ctc_beam_search(prob, self.beam_size)
+        for pred_text, target_text in zip(preds, text):
             wers.append(calc_wer(target_text, pred_text))
         return sum(wers) / len(wers)

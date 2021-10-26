@@ -1,6 +1,6 @@
 import torch
 from typing import List
-from fast_ctc_decode import beam_search
+from ctcdecode import CTCBeamDecoder
 
 from hw_asr.text_encoder.char_text_encoder import CharTextEncoder
 
@@ -13,10 +13,22 @@ class CTCCharTextEncoder(CharTextEncoder):
         self.ind2char = {
             0: self.EMPTY_TOK
         }
-        for text in alphabet:
-            self.ind2char[max(self.ind2char.keys()) + 1] = text
+
+        for i, text in enumerate(alphabet, start=1):
+            self.ind2char[i] = text
+
         self.char2ind = {v: k for k, v in self.ind2char.items()}
-        self.final_alphabet = self.EMPTY_TOK + "".join(alphabet)
+        self.beam_size = 100
+
+        self.beam_search = CTCBeamDecoder(
+            [self.EMPTY_TOK] + alphabet,
+            model_path=None,
+            alpha=0.4,
+            beam_width=self.beam_size,
+            num_processes=2,
+            blank_id=0,
+            log_probs_input=True
+        )
 
     def ctc_decode(self, inds: List[int]) -> str:
         res = []
@@ -30,46 +42,19 @@ class CTCCharTextEncoder(CharTextEncoder):
                 last_blank = False
         return ''.join([self.ind2char[int(c)] for c in res])
 
-    # def _extend_and_merge(self, next_probs: torch.tensor, src_paths: Dict[Tuple[str, str], float]):
-    #     new_paths = defaultdict(float)
-    #     for next_char_ind, next_char_prob in enumerate(next_probs):
-    #         next_char = self.ind2char[next_char_ind]
-    #         for (text, last_char), path_prob in src_paths.items():
-    #             new_prefix = text if next_char == last_char else (text + next_char)
-    #             new_prefix = new_prefix.replace(self.EMPTY_TOK, '')
-    #             new_paths[(new_prefix, next_char)] += path_prob * next_char_prob
-    #     return new_paths
-
-    # def _truncate_beam(self, paths: Dict[Tuple[str, str], float], beam_size: int):
-    #     return dict(sorted(paths.items(), key=lambda x: x[1], reverse=True)[:beam_size])
-
-    # def ctc_beam_search(self, probs: torch.tensor, beam_size: int = 25) -> List[Tuple[str, float]]:
-    #     """
-    #     Performs beam search and returns a list of pairs
-    #     (hypothesis, hypothesis probability).
-    #     """
-    #     assert len(probs.shape) == 2
-    #     _, voc_size = probs.shape
-    #     assert voc_size == len(self.ind2char)
-
-    #     paths = {('', self.EMPTY_TOK): 1.}
-    #     for next_probs in probs:
-    #         paths = self._extend_and_merge(next_probs, paths)
-    #         paths = self._truncate_beam(paths, beam_size)
-    #     return [(el[0][0], el[1]) for el in sorted(paths.items(), key=lambda x: x[1], reverse=True)]
-
-    def ctc_beam_search(self, probs: torch.tensor, beam_size: int = 25) -> str:
+    def ctc_beam_search(self, log_probs: torch.tensor) -> List[str]:
         """
         Performs beam search and returns a list of pairs
         (hypothesis, hypothesis probability).
         """
-        assert len(probs.shape) == 2
-        _, voc_size = probs.shape
+        assert len(log_probs.shape) == 3
+        batch_size, _, voc_size = log_probs.shape
         assert voc_size == len(self.ind2char)
 
-        seq, _ = beam_search(
-            probs.numpy(),
-            self.final_alphabet,
-            beam_size=beam_size
-        )
-        return seq
+        result, _, _, out_len = self.beam_search.decode(log_probs)
+
+        output = []
+        for i in range(batch_size):
+            best_beam = result[i][0][:out_len[i][0]]
+            output.append("".join([self.ind2char[int(c)] for c in best_beam]))
+        return output
