@@ -1,11 +1,34 @@
 # ASR project barebones
 
+Работа на домашним заданием происходила под ОС Ubuntu 20.01 с использованием Python 3.9, поэтому лучше иметь такую конфигурацию
+
 ## Installation guide
 
-< Write your installation guide here >
+Устанавливаем основные библиотеки:
 
 ```shell
 pip install -r ./requirements.txt
+```
+
+Устанавливаем дополнительные библиотеки:
+
+Для `kenlm library`:
+
+```shell
+pip install https://github.com/kpu/kenlm/archive/master.zip
+```
+
+Для `ctcdecode`:
+
+```shell
+git clone --recursive https://github.com/parlance/ctcdecode.git
+cd ctcdecode && pip install .
+```
+
+Если в результате установки последних двух библиотек что-то пошло не так и весь ~~рот~~ экран оказался в C++ ошибках, то возможно поможет эта команда:
+
+```shell
+sudo apt-get install python3.9-dev
 ```
 
 ## Recommended implementation order
@@ -29,12 +52,15 @@ the workflow.
 0) Make sure your projects run on a new machine after complemeting installation guide
 1) Search project for `# TODO: your code here` and implement missing functionality
 2) Make sure all tests work without errors
+
    ```shell
    python -m unittest discover hw_asr/tests
    ```
+
 3) Make sure `test.py` works fine and works as expected. You should create files `default_test_config.json` and your
    installation guide should download your model checpoint and configs in `default_test_model/checkpoint.pth`
    and `default_test_model/config.json`.
+
    ```shell
    python test.py \
       -c default_test_config.json \
@@ -42,19 +68,5 @@ the workflow.
       -t test_data \
       -o test_result.json
    ```
+
 4) Use `train.py` for training
-
-## Credits
-
-this repository is based on a heavily modified fork
-of [pytorch-template](https://github.com/victoresque/pytorch-template) repository.
-
-## TODO
-
-These barebones can use more tests. We highly encourage students to create pull requests to add more tests / new
-functionality. Current demands:
-
-* Tests for beam search
-* W&B logger backend
-* README section to describe folders
-* Notebook to show how to work with `ConfigParser` and `config_parser.init_obj(...)`
