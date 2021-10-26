@@ -4,10 +4,10 @@ import torch.nn as nn
 from hw_asr.base import BaseModel
 
 
-class CheckpointModel(BaseModel):
+class RnnModel(BaseModel):
     def __init__(
         self, n_feats, n_class, fc_hidden=512, num_layers=1,
-        rnn_hidden=128, bidirectional=False, *args, **kwargs
+        rnn_hidden=128, bidirectional=False, dropout=0.1, *args, **kwargs
     ):
         super().__init__(n_feats, n_class, *args, **kwargs)
         self.fc_hidden = fc_hidden
@@ -22,7 +22,7 @@ class CheckpointModel(BaseModel):
             batch_first=True,
             num_layers=num_layers,
             bidirectional=bidirectional,
-            **kwargs
+            dropout=dropout
         )
 
         self.fc_net = nn.Sequential(

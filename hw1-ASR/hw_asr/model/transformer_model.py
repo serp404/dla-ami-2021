@@ -6,7 +6,7 @@ from hw_asr.base import BaseModel
 class TransformerModel(BaseModel):
     def __init__(
         self, n_feats, n_class, fc_hidden=512, tr_hidden=256,
-        n_layers=2, n_head=4, dropout=0.1, defualt_seq_len=1000,
+        num_layers=2, n_head=4, dropout=0.1, defualt_seq_len=1000,
         *args, **kwargs
     ):
         super().__init__(n_feats, n_class, *args, **kwargs)
@@ -29,7 +29,7 @@ class TransformerModel(BaseModel):
                 dim_feedforward=tr_hidden,
                 dropout=dropout
             ),
-            num_layers=n_layers
+            num_layers=num_layers
         )
 
         self.output_fc = nn.Sequential(

@@ -1,8 +1,44 @@
+import os
 import torch
+import shutil
+import wget
+import gzip
 from typing import List
 from ctcdecode import CTCBeamDecoder
 
 from hw_asr.text_encoder.char_text_encoder import CharTextEncoder
+
+# by tutorial:
+# https://github.com/NVIDIA/NeMo/blob/main/tutorials/asr/Offline_ASR.ipynb
+
+
+def _get_kenlm():
+    lm_gzip_path = '3-gram.pruned.1e-7.arpa.gz'
+    if not os.path.exists(lm_gzip_path):
+        print('Downloading pruned 3-gram model.')
+        url = 'http://www.openslr.org/resources/11/3-gram.pruned.1e-7.arpa.gz'
+        lm_gzip_path = wget.download(url)
+        print('Downloaded the 3-gram language model.')
+    else:
+        print('Pruned .arpa.gz already exists.')
+
+    uppercase_lm_path = '3-gram.pruned.1e-7.arpa'
+    if not os.path.exists(uppercase_lm_path):
+        with gzip.open(lm_gzip_path, 'rb') as f_zipped:
+            with open(uppercase_lm_path, 'wb') as f_unzipped:
+                shutil.copyfileobj(f_zipped, f_unzipped)
+        print('Unzipped the 3-gram language model.')
+    else:
+        print('Unzipped .arpa already exists.')
+
+    lm_path = 'lowercase_3-gram.pruned.1e-7.arpa'
+    if not os.path.exists(lm_path):
+        with open(uppercase_lm_path, 'r') as f_upper:
+            with open(lm_path, 'w') as f_lower:
+                for line in f_upper:
+                    f_lower.write(line.lower())
+    print('Converted language model file to lowercase.')
+    return lm_path
 
 
 class CTCCharTextEncoder(CharTextEncoder):
@@ -22,7 +58,7 @@ class CTCCharTextEncoder(CharTextEncoder):
 
         self.beam_search = CTCBeamDecoder(
             [self.EMPTY_TOK] + alphabet,
-            model_path=None,
+            model_path=_get_kenlm(),
             alpha=0.4,
             beam_width=self.beam_size,
             num_processes=2,

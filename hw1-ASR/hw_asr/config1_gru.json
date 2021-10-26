@@ -1,5 +1,5 @@
 {
-    "name": "gru_aug_config",
+    "name": "gru_config",
     "n_gpu": 1,
     "preprocessing": {
         "sr": 16000,
@@ -13,7 +13,12 @@
             {
                 "type": "PeakNormalization",
                 "args": {},
-                "random": 0.3
+                "randomness": 0.3
+            },
+            {
+                "type": "Gain",
+                "args": {},
+                "randomness": 0.3
             }
         ],
         "spectrogram": [
@@ -22,18 +27,26 @@
                 "args": {
                     "freq_mask_param": 10
                 },
-                "random": 0.3
+                "randomness": 0.2
+            },
+            {
+                "type": "TimeMasking",
+                "args": {
+                    "time_mask_param": 10
+                },
+                "randomness": 0.2
             }
         ]
     },
     "arch": {
-        "type": "CheckpointModel",
+        "type": "RnnModel",
         "args": {
             "n_feats": 128,
             "fc_hidden": 512,
             "rnn_hidden": 256,
-            "num_layers": 3,
-            "bidirectional": true
+            "num_layers": 5,
+            "bidirectional": true,
+            "dropout": 0.25
         }
     },
     "data": {
@@ -116,12 +129,12 @@
     "lr_scheduler": {
         "type": "CosineAnnealingLR",
         "args": {
-            "T_max": 80,
+            "T_max": 120,
             "eta_min": 0.00001
         }
     },
     "trainer": {
-        "epochs": 100,
+        "epochs": 150,
         "len_epoch": 200,
         "save_dir": "saved/",
         "save_period": 5,
