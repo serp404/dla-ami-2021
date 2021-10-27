@@ -10,7 +10,7 @@ class Gain(AugmentationBase):
 
     def __call__(self, data: torch.Tensor):
         x = data.unsqueeze(dim=1)
-        return self._aug(x, 0.5).squeeze(dim=1)
+        return self._aug(x, sample_rate=10000).squeeze(dim=1)
 
 
 class PeakNormalization(AugmentationBase):
@@ -19,4 +19,4 @@ class PeakNormalization(AugmentationBase):
 
     def __call__(self, data: torch.Tensor):
         x = data.unsqueeze(dim=1)
-        return self._aug(x, 0.5).squeeze(dim=1)
+        return self._aug(x, sample_rate=10000).squeeze(dim=1)
