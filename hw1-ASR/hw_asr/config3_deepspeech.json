@@ -111,14 +111,15 @@
     "lr_scheduler": {
         "type": "CosineAnnealingLR",
         "args": {
-            "T_max": 120,
+            "T_max": 40,
             "eta_min": 0.00001
         }
     },
     "trainer": {
-        "epochs": 150,
+        "epochs": 50,
+        "len_epoch": 400,
         "save_dir": "saved/",
-        "save_period": 10,
+        "save_period": 2,
         "verbosity": 0,
         "monitor": "off",
         "visualize": "wandb",
