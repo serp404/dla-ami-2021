@@ -92,15 +92,13 @@
         {
             "type": "ArgmaxWERMetric",
             "args": {
-                "name": "WER (argmax)",
-                "split": "train"
+                "name": "WER (argmax)"
             }
         },
         {
             "type": "ArgmaxCERMetric",
             "args": {
-                "name": "CER (argmax)",
-                "split": "train"
+                "name": "CER (argmax)"
             }
         },
         {
