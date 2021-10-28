@@ -78,19 +78,16 @@ class CTCCharTextEncoder(CharTextEncoder):
                 last_blank = False
         return ''.join([self.ind2char[int(c)] for c in res])
 
-    def ctc_beam_search(self, log_probs: torch.tensor) -> List[str]:
+    def ctc_beam_search(self, log_probs: torch.tensor) -> str:
         """
         Performs beam search and returns a list of pairs
         (hypothesis, hypothesis probability).
         """
-        assert len(log_probs.shape) == 3
-        batch_size, _, voc_size = log_probs.shape
+        assert len(log_probs.shape) == 2
+        _, voc_size = log_probs.shape
         assert voc_size == len(self.ind2char)
 
         result, _, _, out_len = self.beam_search.decode(log_probs)
 
-        output = []
-        for i in range(batch_size):
-            best_beam = result[i][0][:out_len[i][0]]
-            output.append("".join([self.ind2char[int(c)] for c in best_beam]))
-        return output
+        best_beam = result[0][0][:out_len[0][0]]
+        return "".join([self.ind2char[int(c)] for c in best_beam])

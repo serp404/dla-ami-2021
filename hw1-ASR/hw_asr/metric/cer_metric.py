@@ -32,8 +32,12 @@ class BeamSearchCERMetric(BaseMetric):
 
     def __call__(self, log_probs: Tensor, text: List[str], *args, **kwargs):
         cers = []
-        preds = self.text_encoder.ctc_beam_search(log_probs.cpu())
+        log_prob_lens = kwargs['log_probs_length'].cpu().tolist()
 
-        for pred_text, target_text in zip(preds, text):
+        for log_prob_l, log_prob_v, target_text in zip(log_prob_lens, log_probs.cpu(), text):
+            if hasattr(self.text_encoder, "ctc_beam_search"):
+                pred_text = self.text_encoder.ctc_beam_search(
+                    log_prob_v[:log_prob_l, :].unsqueeze(dim=0)
+                )
             cers.append(calc_cer(target_text, pred_text))
         return sum(cers) / len(cers)
