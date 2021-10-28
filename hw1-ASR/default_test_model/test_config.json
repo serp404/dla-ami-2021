@@ -1,0 +1,95 @@
+{
+    "name": "test_deepspeech_config",
+    "n_gpu": 1,
+    "preprocessing": {
+        "sr": 16000,
+        "spectrogram": {
+            "type": "MelSpectrogram",
+            "args": {}
+        }
+    },
+    "augmentations": {
+        "wave": [],
+        "spectrogram": []
+    },
+    "arch": {
+        "type": "DeepSpeechModel",
+        "args": {
+            "n_feats": 128
+        }
+    },
+    "data": {
+        "test": {
+            "batch_size": 5,
+            "num_workers": 8,
+            "datasets": [
+                {
+                    "type": "LibrispeechDataset",
+                    "args": {
+                        "part": "dev-clean",
+                        "max_audio_length": 25.0,
+                        "max_text_length": 280,
+                        "limit": 5
+                    }
+                }
+            ]
+        }
+    },
+    "optimizer": {
+        "type": "AdamW",
+        "args": {
+            "lr": 0.00025,
+            "weight_decay": 1e-05
+        }
+    },
+    "loss": {
+        "type": "CTCLoss",
+        "args": {}
+    },
+    "metrics": [
+        {
+            "type": "ArgmaxWERMetric",
+            "args": {
+                "name": "WER (argmax)"
+            }
+        },
+        {
+            "type": "ArgmaxCERMetric",
+            "args": {
+                "name": "CER (argmax)"
+            }
+        },
+        {
+            "type": "BeamSearchWERMetric",
+            "args": {
+                "name": "WER (beam_search)",
+                "split": "val"
+            }
+        },
+        {
+            "type": "BeamSearchCERMetric",
+            "args": {
+                "name": "CER (beam_search)",
+                "split": "val"
+            }
+        }
+    ],
+    "lr_scheduler": {
+        "type": "CosineAnnealingLR",
+        "args": {
+            "T_max": 20000,
+            "eta_min": 1e-05
+        }
+    },
+    "trainer": {
+        "epochs": 5,
+        "len_epoch": 1,
+        "save_dir": "saved/",
+        "save_period": 1,
+        "verbosity": 0,
+        "monitor": "off",
+        "visualize": "wandb",
+        "wandb_project": "asr_project",
+        "grad_norm_clip": 6
+    }
+}
