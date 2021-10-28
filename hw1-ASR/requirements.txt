@@ -14,3 +14,4 @@ datasets
 editdistance
 wandb
 wget
+gdown
