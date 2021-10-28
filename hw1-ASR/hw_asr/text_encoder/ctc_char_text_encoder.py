@@ -54,7 +54,8 @@ class CTCCharTextEncoder(CharTextEncoder):
             self.ind2char[i] = text
 
         self.char2ind = {v: k for k, v in self.ind2char.items()}
-        self.beam_size = 100
+        # self.beam_size = 100
+        self.beam_size = 250
 
         self.beam_search = CTCBeamDecoder(
             [self.EMPTY_TOK] + alphabet,
