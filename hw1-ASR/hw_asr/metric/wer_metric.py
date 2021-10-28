@@ -35,9 +35,8 @@ class BeamSearchWERMetric(BaseMetric):
         log_prob_lens = kwargs['log_probs_length'].cpu().tolist()
 
         for log_prob_l, log_prob_v, target_text in zip(log_prob_lens, log_probs.cpu(), text):
-            if hasattr(self.text_encoder, "ctc_beam_search"):
-                pred_text = self.text_encoder.ctc_beam_search(
-                    log_prob_v[:log_prob_l, :].unsqueeze(dim=0)
-                )
+            pred_text = self.text_encoder.ctc_beam_search(
+                log_prob_v[:log_prob_l, :].unsqueeze(dim=0)
+            )
             wers.append(calc_wer(target_text, pred_text))
         return sum(wers) / len(wers)
