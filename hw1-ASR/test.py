@@ -26,7 +26,11 @@ def main(config, out_file):
     dataloaders = get_dataloaders(config, text_encoder)
 
     # build model architecture
-    model = config.init_obj(config["arch"], module_model, n_class=len(text_encoder))
+    model = config.init_obj(
+        config["arch"],
+        module_model,
+        n_class=len(text_encoder)
+    )
     logger.info(model)
 
     logger.info("Loading checkpoint: {} ...".format(config.resume))
@@ -56,18 +60,22 @@ def main(config, out_file):
                 batch["spectrogram_length"]
             )
             batch["probs"] = batch["log_probs"].exp().cpu()
-            batch["argmax"] = batch["probs"].argmax(-1)
+            batch["argmax"] = batch["probs"].argmax(dim=-1)
+
             for i in range(len(batch["text"])):
                 argmax = batch["argmax"][i]
-                argmax = argmax[:int(batch["log_probs_length"][i])]
+                lengths = int(batch["log_probs_length"][i])
+
+                argmax = argmax[:lengths]
+                log_probs = batch["log_probs"][i][:lengths, :]
+
                 results.append(
                     {
                         "ground_trurh": batch["text"][i],
                         "pred_text_argmax": text_encoder.ctc_decode(argmax),
                         "pred_text_beam_search": text_encoder.ctc_beam_search(
-                            batch["probs"], batch["log_probs_length"],
-                            beam_size=100
-                        )[:10],
+                            log_probs.unsqueeze(dim=0)
+                        )
                     }
                 )
 
@@ -115,13 +123,13 @@ if __name__ == "__main__":
     args.add_argument(
         "-b",
         "--batch-size",
-        default=20,
+        default=5,
         type=int,
         help="Test dataset batch size",
     )
     args.add_argument(
         "-j",
-        "--jobs",
+        "--n_jobs",
         default=1,
         type=int,
         help="Number of workers for test dataloader",
@@ -135,7 +143,7 @@ if __name__ == "__main__":
 
     # first, we need to obtain config with model parameters
     # we assume it is located with checkpoint in the same folder
-    model_config = Path(args.resume).parent / "config.json"
+    model_config = Path(args.resume).parent / "test_config.json"
     with model_config.open() as f:
         config = ConfigParser(json.load(f), resume=args.resume)
 
@@ -151,7 +159,7 @@ if __name__ == "__main__":
         config.config["data"] = {
             "test": {
                 "batch_size": args.batch_size,
-                "num_workers": args.jobs,
+                "num_workers": args.n_jobs,
                 "datasets": [
                     {
                         "type": "CustomDirAudioDataset",
