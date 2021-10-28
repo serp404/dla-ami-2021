@@ -10,7 +10,15 @@
     },
     "augmentations": {
         "wave": [],
-        "spectrogram": []
+        "spectrogram": [
+            {
+                "type": "FrequencyMasking",
+                "args": {
+                    "freq_mask_param": 10
+                },
+                "randomness": 0.2
+            }
+        ]
     },
     "arch": {
         "type": "DeepSpeechModel",
@@ -20,7 +28,13 @@
     },
     "data": {
         "train": {
-            "batch_size": 20,
+            "batch_sampler": {
+                "type": "GroupLengthBatchSampler",
+                "args": {
+                    "batch_size": 32,
+                    "group_size": 512
+                }
+            },
             "num_workers": 8,
             "datasets": [
                 {
@@ -28,14 +42,13 @@
                     "args": {
                         "part": "train-clean-100",
                         "max_audio_length": 25.0,
-                        "max_text_length": 280,
-                        "limit": 20
+                        "max_text_length": 280
                     }
                 }
             ]
         },
         "val": {
-            "batch_size": 20,
+            "batch_size": 32,
             "num_workers": 8,
             "datasets": [
                 {
@@ -43,8 +56,7 @@
                     "args": {
                         "part": "dev-clean",
                         "max_audio_length": 25.0,
-                        "max_text_length": 280,
-                        "limit": 20
+                        "max_text_length": 280
                     }
                 }
             ]
@@ -53,7 +65,7 @@
     "optimizer": {
         "type": "AdamW",
         "args": {
-            "lr": 0.00025,
+            "lr": 0.0002,
             "weight_decay": 1e-05
         }
     },
@@ -97,10 +109,10 @@
         }
     },
     "trainer": {
-        "epochs": 5,
-        "len_epoch": 1,
+        "epochs": 100,
+        "len_epoch": 200,
         "save_dir": "saved/",
-        "save_period": 1,
+        "save_period": 5,
         "verbosity": 0,
         "monitor": "off",
         "visualize": "wandb",
