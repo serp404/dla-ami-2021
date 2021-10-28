@@ -83,7 +83,7 @@ class CTCCharTextEncoder(CharTextEncoder):
         Performs beam search and returns a list of pairs
         (hypothesis, hypothesis probability).
         """
-        assert len(log_probs.shape) == 2
+        assert len(log_probs.shape) == 3
         _, voc_size = log_probs.shape
         assert voc_size == len(self.ind2char)
 
