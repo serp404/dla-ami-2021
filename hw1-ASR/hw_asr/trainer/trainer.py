@@ -126,9 +126,6 @@ class Trainer(BaseTrainer):
             if batch_idx >= self.len_epoch:
                 break
 
-        if self.lr_scheduler is not None:
-            self.lr_scheduler.step()
-
         log = self.train_metrics.result()
         if self.do_validation:
             val_log = self._valid_epoch(epoch)
@@ -156,6 +153,9 @@ class Trainer(BaseTrainer):
             batch["loss"].backward()
             self._clip_grad_norm()
             self.optimizer.step()
+
+            if self.lr_scheduler is not None:
+                self.lr_scheduler.step()
 
         metrics.update("loss", batch["loss"].item())
         for met in self.metrics:
