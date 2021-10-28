@@ -40,14 +40,27 @@ sudo apt-get install python3.9-dev
 Скачиваем веса и перемещаем в тестовую директорию:
 
 ```shell
-   gdown --id 1P2N45LCXdv6QajbmaD6ZCvZUm56wvu9O
-   mv checkpoint.pth ./default_test_model/
+gdown --id 1P2N45LCXdv6QajbmaD6ZCvZUm56wvu9O
+mv checkpoint.pth ./default_test_model/
 ```
 
 Запускаем на тестовых данных:
 
 ```shell
-   python3 test.py -r default_test_model/checkpoint.pth -t test_data/ -o test_output.json
+python3 test.py -r default_test_model/checkpoint.pth -t test_data/ -o test_output.json
 ```
 
 В файле `test_output.json` будут лежать предсказания модели
+
+## Brief report
+
+Что сделано:
+
+- Использована модель DeepSpeech
+- Добавлен beam-search с lm-fusion
+- Достигнут 0.3 CER
+- Чтобы воспроизвести обучение модели достаточно запустить `train.py` с конфигом из `default_test_model`
+- Изначально пробовал различные рекурентные сети (они показывали многообещающие результаты), но в итоге сел за `DeepSpeech` и ~~обоср~~ засел с ним надолго...
+
+Графики обучения тут:
+<https://wandb.ai/serp404/asr_project/reports/DLA-report--VmlldzoxMTY2NjYz?accessToken=0vhiz6hqs3cgyvne3rkuf4zohwmqvolmd383s0mgf25ro22ggrqzsure47ps6rii>
