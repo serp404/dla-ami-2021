@@ -84,7 +84,7 @@ class CTCCharTextEncoder(CharTextEncoder):
         (hypothesis, hypothesis probability).
         """
         assert len(log_probs.shape) == 3
-        _, voc_size = log_probs.shape
+        _, _, voc_size = log_probs.shape
         assert voc_size == len(self.ind2char)
 
         result, _, _, out_len = self.beam_search.decode(log_probs)
