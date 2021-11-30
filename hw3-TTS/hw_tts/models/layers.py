@@ -68,18 +68,20 @@ class MultiHeadAttention(nn.Module):
 
 
 class ConvNet(nn.Module):
-    def __init__(self, d_model: int, kernel_size: int) -> None:
+    def __init__(
+        self, d_model: int, hidden_size: int, kernel_size: int
+    ) -> None:
         super().__init__()
         self.layers = nn.Sequential(
             nn.Conv1d(
                 in_channels=d_model,
-                out_channels=d_model,
+                out_channels=hidden_size,
                 kernel_size=kernel_size,
                 padding="same"
             ),
             nn.ReLU(),
             nn.Conv1d(
-                in_channels=d_model,
+                in_channels=hidden_size,
                 out_channels=d_model,
                 kernel_size=kernel_size,
                 padding="same"
@@ -92,12 +94,14 @@ class ConvNet(nn.Module):
 
 
 class FeedForwardTransformer(nn.Module):
-    def __init__(self, n_head: int, d_model: int, kernel_size: int) -> None:
+    def __init__(
+        self, n_head: int, d_model: int, hidden_size: int, kernel_size: int
+    ) -> None:
         super().__init__()
         self.multihead = MultiHeadAttention(n_head, d_model)
         self.norm1 = nn.LayerNorm(normalized_shape=d_model)
         self.norm2 = nn.LayerNorm(normalized_shape=d_model)
-        self.convs = ConvNet(d_model, kernel_size)
+        self.convs = ConvNet(d_model, hidden_size, kernel_size)
 
     def forward(self, batch: torch.Tensor) -> torch.Tensor:
         x = self.multihead(batch)
@@ -108,17 +112,19 @@ class FeedForwardTransformer(nn.Module):
 
 
 class DurationPredictor(nn.Module):
-    def __init__(self, d_model: int, kernel_size: int) -> None:
+    def __init__(
+        self, d_model: int, hidden_size: int, kernel_size: int
+    ) -> None:
         super().__init__()
 
         self.conv1 = nn.Sequential(
-            nn.Conv1d(d_model, d_model, kernel_size, padding="same"),
+            nn.Conv1d(d_model, hidden_size, kernel_size, padding="same"),
             nn.ReLU()
         )
-        self.norm1 = nn.LayerNorm(normalized_shape=d_model)
+        self.norm1 = nn.LayerNorm(normalized_shape=hidden_size)
 
         self.conv2 = nn.Sequential(
-            nn.Conv1d(d_model, d_model, kernel_size, padding="same"),
+            nn.Conv1d(hidden_size, d_model, kernel_size, padding="same"),
             nn.ReLU()
         )
         self.norm2 = nn.LayerNorm(normalized_shape=d_model)
