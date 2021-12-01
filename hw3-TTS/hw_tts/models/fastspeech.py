@@ -42,9 +42,11 @@ class FastSpeech(nn.Module):
         )
 
     def forward(self, batch: tp.Dict[str, tp.Any]) -> torch.Tensor:
-        tokens = batch["tokens"]
-        tokens_lengths = batch["tokens_lengths"]
-        durations = batch["durations"]
+        device = next(self.parameters()).device
+
+        tokens = batch["tokens"].to(device)
+        tokens_lengths = batch["tokens_lengths"].to(device)
+        durations = batch["durations"].to(device)
 
         x = self.embedding(tokens)
         x += self.pos_encoding(x)
