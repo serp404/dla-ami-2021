@@ -46,13 +46,16 @@ class FastSpeech(nn.Module):
 
         tokens = batch["tokens"].to(device)
         tokens_lengths = batch["tokens_lengths"].to(device)
-        durations = batch["durations"].to(device)
+
+        has_durations = "durations" in batch and batch["durations"] is not None
+        durations = batch["durations"].to(device) if has_durations else None
 
         x = self.embedding(tokens)
         x += self.pos_encoding(x)
 
         encoder_states = self.encoder_layers(x)
         durations_predicted = self.duration_predictor(encoder_states).squeeze()
+
         if durations is None:
             durations = torch.maximum(
                 durations_predicted * self.alpha,
