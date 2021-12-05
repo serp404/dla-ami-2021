@@ -1,10 +1,20 @@
+import os
 import torch
 import torch.nn as nn
+
+from google_drive_downloader import GoogleDriveDownloader as gdd
 
 
 class Vocoder(nn.Module):
     def __init__(self, path: str):
         super(Vocoder, self).__init__()
+
+        if not os.path.isfile(path):
+            gdd.download_file_from_google_drive(
+                file_id='1rpK8CzAAirq9sWZhe9nlfvxMF1dRgFbF',
+                dest_path=path
+            )
+
         model = torch.load(path, map_location='cpu')['model']
         self.net = model.remove_weightnorm(model)
 
