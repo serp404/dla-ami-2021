@@ -69,7 +69,7 @@ def main(args):
                     p, gain=torch.nn.init.calculate_gain("linear")
                 )
 
-    model = model.to(DEVICE)
+    model.to(DEVICE)
     aligner = GraphemeAligner(melspec_sr=MelSpectrogramConfig.sr).to(DEVICE)
 
     sys.path.append('waveglow/')
@@ -115,9 +115,9 @@ def main(args):
             pad_tok_mask = (batch["tokens"] != 0).to(DEVICE)
 
             loss = criterion(
-                mels_pred=mels[:, :max_mel_len].to(DEVICE),
+                mels_pred=mels[:, :max_mel_len],
                 mels_true=batch["melspecs"][:, :max_mel_len].to(DEVICE),
-                durs_pred=durs.to(DEVICE) * pad_tok_mask,
+                durs_pred=durs * pad_tok_mask,
                 durs_true=torch.log1p(
                     batch["durations"].float().to(DEVICE)
                 ) * pad_tok_mask
@@ -143,9 +143,9 @@ def main(args):
             pad_tok_mask = (batch["tokens"] != 0).to(DEVICE)
 
             loss = criterion(
-                mels_pred=mels[:, :max_mel_len].to(DEVICE),
+                mels_pred=mels[:, :max_mel_len],
                 mels_true=batch["melspecs"][:, :max_mel_len].to(DEVICE),
-                durs_pred=durs.to(DEVICE) * pad_tok_mask,
+                durs_pred=durs * pad_tok_mask,
                 durs_true=torch.log1p(
                     batch["durations"].float().to(DEVICE)
                 ) * pad_tok_mask
@@ -187,8 +187,8 @@ def main(args):
             }
         )
 
-        if epoch % TaskConfig.save_period:
-            torch.save(model.cpu(), os.path.join(save_path, f"e{epoch}"))
+        if epoch % TaskConfig.save_period == 0:
+            torch.save(model, os.path.join(save_path, f"e{epoch}"))
 
     run.finish()
 
