@@ -11,7 +11,8 @@ class FastSpeech(nn.Module):
     def __init__(
         self, d_model: int, n_head: int, n_tokens: int, hidden_size: int,
         duration_hidden: int, n_encoders: int, n_decoders: int,
-        alpha: float = 1., melspec_size: int = 80, kernel_size: int = 3
+        alpha: float = 1., melspec_size: int = 80, kernel_size: int = 3,
+        encoder_dropout: float = 0.4, decoder_dropout: float = 0.4
     ) -> None:
         super().__init__()
         self.alpha = alpha
@@ -27,8 +28,9 @@ class FastSpeech(nn.Module):
         )
 
         self.encoder_layers = nn.Sequential(
-            *[FeedForwardTransformer(n_head, d_model, hidden_size, kernel_size)
-                for _ in range(n_encoders)]
+            *[FeedForwardTransformer(
+                n_head, d_model, hidden_size, kernel_size, encoder_dropout
+            ) for _ in range(n_encoders)]
         )
 
         self.duration_predictor = DurationPredictor(
@@ -36,8 +38,9 @@ class FastSpeech(nn.Module):
         )
 
         self.decoder_layers = nn.Sequential(
-            *[FeedForwardTransformer(n_head, d_model, hidden_size, kernel_size)
-                for _ in range(n_decoders)],
+            *[FeedForwardTransformer(
+                n_head, d_model, hidden_size, kernel_size, decoder_dropout
+            ) for _ in range(n_decoders)],
             nn.Linear(in_features=d_model, out_features=melspec_size)
         )
 

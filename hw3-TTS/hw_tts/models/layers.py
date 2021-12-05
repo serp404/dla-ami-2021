@@ -95,19 +95,24 @@ class ConvNet(nn.Module):
 
 class FeedForwardTransformer(nn.Module):
     def __init__(
-        self, n_head: int, d_model: int, hidden_size: int, kernel_size: int
+        self, n_head: int, d_model: int, hidden_size: int,
+        kernel_size: int, dropout: float
     ) -> None:
         super().__init__()
         self.multihead = MultiHeadAttention(n_head, d_model)
         self.norm1 = nn.LayerNorm(normalized_shape=d_model)
+        self.dropout1 = nn.Dropout(p=dropout)
         self.norm2 = nn.LayerNorm(normalized_shape=d_model)
+        self.dropout2 = nn.Dropout(p=dropout)
         self.convs = ConvNet(d_model, hidden_size, kernel_size)
 
     def forward(self, batch: torch.Tensor) -> torch.Tensor:
         x = self.multihead(batch)
         x = self.norm1(x + batch)
+        x = self.dropout1(x)
         x = self.convs(x)
         x = self.norm2(x + batch)
+        x = self.dropout2(x)
         return x
 
 
