@@ -4,7 +4,7 @@ import typing as tp
 class TaskConfig:
     # Train options
     n_epochs: int = 100
-    batch_size: int = 32
+    batch_size: int = 16
     dataloader_workers: int = 8
     train_size: float = 0.8
     l1_weight: float = 1.
