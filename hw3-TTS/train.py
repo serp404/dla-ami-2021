@@ -80,23 +80,26 @@ def main(args):
         )
 
     wandb.login()
+    wandb.init(project="tts_project", entity="serp404")
+
     for epoch in range(N_EPOCHS):
         model.train()
         train_losses = []
         train_grads = []
         for batch in tqdm(train_loader, desc=f"Training epoch {epoch}"):
             compute_durations(aligner, batch, DEVICE)
-            pad_tok_mask = (batch["tokens"] != 0).to(DEVICE)
 
             mels, durs = model(batch)
             max_mel_len = min(mels.shape[-2], batch["melspecs"].shape[-2])
+            max_dur_len = min(durs.shape[-2], batch["durations"].shape[-2])
+            pad_tok_mask = (batch["tokens"][:, :max_dur_len] != 0).to(DEVICE)
 
             loss = criterion(
                 mels_pred=mels[:, :max_mel_len],
                 mels_true=batch["melspecs"][:, :max_mel_len].to(DEVICE),
-                durs_pred=durs * pad_tok_mask,
+                durs_pred=durs[:, max_dur_len] * pad_tok_mask,
                 durs_true=torch.log(
-                    batch["durations"].float().to(DEVICE)
+                    batch["durations"][:, :max_dur_len].float().to(DEVICE)
                 ) * pad_tok_mask
             )
 
@@ -112,18 +115,20 @@ def main(args):
         model.eval()
         val_losses = []
         for batch in tqdm(val_loader, desc=f"Validating epoch {epoch}"):
+            compute_durations(aligner, batch, DEVICE)
             with torch.no_grad():
-                pad_tok_mask = (batch["tokens"] != 0).to(DEVICE)
                 mels, durs = model(batch)
 
             max_mel_len = min(mels.shape[-2], batch["melspecs"].shape[-2])
+            max_dur_len = min(durs.shape[-2], batch["durations"].shape[-2])
+            pad_tok_mask = (batch["tokens"][:, :max_dur_len] != 0).to(DEVICE)
 
             loss = criterion(
                 mels_pred=mels[:, :max_mel_len],
                 mels_true=batch["melspecs"][:, :max_mel_len].to(DEVICE),
-                durs_pred=durs * pad_tok_mask,
+                durs_pred=durs[:, max_dur_len] * pad_tok_mask,
                 durs_true=torch.log(
-                    batch["durations"].float().to(DEVICE)
+                    batch["durations"][:, :max_dur_len].float().to(DEVICE)
                 ) * pad_tok_mask
             )
 
