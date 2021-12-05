@@ -28,6 +28,11 @@ def compute_durations(aligner, batch, device):
         aligner_output * batch["melspecs_lengths"].unsqueeze(dim=1)
     ).long()
 
+    max_len = min(batch["durations"].shape[-2], batch["tokens"].shape[-2])
+
+    batch["durations"] = batch["durations"][:, :max_len]
+    batch["tokens"] = batch["tokens"][:, :max_len]
+
 
 def clip_gradients(model, clip_value):
     if clip_value is not None:

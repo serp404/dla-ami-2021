@@ -91,15 +91,14 @@ def main(args):
 
             mels, durs = model(batch)
             max_mel_len = min(mels.shape[-2], batch["melspecs"].shape[-2])
-            max_dur_len = min(durs.shape[-2], batch["durations"].shape[-2])
-            pad_tok_mask = (batch["tokens"][:, :max_dur_len] != 0).to(DEVICE)
+            pad_tok_mask = (batch["tokens"] != 0).to(DEVICE)
 
             loss = criterion(
                 mels_pred=mels[:, :max_mel_len],
                 mels_true=batch["melspecs"][:, :max_mel_len].to(DEVICE),
-                durs_pred=durs[:, max_dur_len] * pad_tok_mask,
+                durs_pred=durs * pad_tok_mask,
                 durs_true=torch.log(
-                    batch["durations"][:, :max_dur_len].float().to(DEVICE)
+                    batch["durations"].float().to(DEVICE)
                 ) * pad_tok_mask
             )
 
@@ -120,15 +119,14 @@ def main(args):
                 mels, durs = model(batch)
 
             max_mel_len = min(mels.shape[-2], batch["melspecs"].shape[-2])
-            max_dur_len = min(durs.shape[-2], batch["durations"].shape[-2])
-            pad_tok_mask = (batch["tokens"][:, :max_dur_len] != 0).to(DEVICE)
+            pad_tok_mask = (batch["tokens"] != 0).to(DEVICE)
 
             loss = criterion(
                 mels_pred=mels[:, :max_mel_len],
                 mels_true=batch["melspecs"][:, :max_mel_len].to(DEVICE),
-                durs_pred=durs[:, max_dur_len] * pad_tok_mask,
+                durs_pred=durs * pad_tok_mask,
                 durs_true=torch.log(
-                    batch["durations"][:, :max_dur_len].float().to(DEVICE)
+                    batch["durations"].float().to(DEVICE)
                 ) * pad_tok_mask
             )
 
