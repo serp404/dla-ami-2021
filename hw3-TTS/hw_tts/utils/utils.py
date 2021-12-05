@@ -34,9 +34,9 @@ def compute_durations(aligner, batch, device):
     batch["tokens"] = batch["tokens"][:, :max_len]
 
 
-def clip_gradients(model, clip_value):
+def clip_gradients(params, clip_value):
     if clip_value is not None:
-        torch.nn.utils.clip_grad_norm_(model.parameters(), clip_value)
+        torch.nn.utils.clip_grad_norm_(params, clip_value)
 
 
 def traverse_config(config):
