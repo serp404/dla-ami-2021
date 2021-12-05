@@ -54,9 +54,12 @@ class FastSpeech(nn.Module):
         x += self.pos_encoding(x)
 
         encoder_states = self.encoder_layers(x)
-        durations_predicted = self.duration_predictor(encoder_states).squeeze()
+        log_durations_predicted = self.duration_predictor(
+            encoder_states
+        ).squeeze()
 
         if durations is None:
+            durations_predicted = torch.exp(log_durations_predicted)
             durations = torch.maximum(
                 durations_predicted * self.alpha,
                 torch.ones_like(durations_predicted)
