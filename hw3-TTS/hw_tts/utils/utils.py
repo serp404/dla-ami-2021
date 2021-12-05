@@ -37,3 +37,10 @@ def compute_durations(aligner, batch, device):
 def clip_gradients(model, clip_value):
     if clip_value is not None:
         torch.nn.utils.clip_grad_norm_(model.parameters(), clip_value)
+
+
+def traverse_config(config):
+    return {
+        attr: getattr(config, attr) for attr in dir(config)
+        if not attr.startswith("__")
+    }

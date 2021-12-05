@@ -3,8 +3,8 @@ import sys
 import argparse
 import warnings
 import random
-from torch.nn.modules.module import T
 import wandb
+import transformers
 
 import torch
 import torch.nn as nn
@@ -18,7 +18,8 @@ from hw_tts.datasets import prepare_dataloaders
 from hw_tts.loss import fastspeech_loss
 from hw_tts.models import FastSpeech
 from hw_tts.config import TaskConfig
-from hw_tts.utils import get_grad_norm, compute_durations, clip_gradients
+from hw_tts.utils import get_grad_norm, compute_durations
+from hw_tts.utils import clip_gradients, traverse_config
 
 warnings.filterwarnings("ignore", category=UserWarning)
 
@@ -44,7 +45,11 @@ def main(args):
     BATCH_SIZE = TaskConfig.batch_size
 
     wandb.login()
-    run = wandb.init(project="tts_project", entity="serp404")
+    run = wandb.init(
+        project="tts_project",
+        entity="serp404",
+        config=traverse_config(TaskConfig)
+    )
     save_path = os.path.join(TaskConfig.save_dir, run.name)
     os.mkdir(save_path)
 
@@ -82,11 +87,22 @@ def main(args):
     )
 
     if TaskConfig.scheduler is not None:
-        scheduler = getattr(torch.optim.lr_scheduler, TaskConfig.scheduler)(
-            optimizer, **TaskConfig.scheduler_params
-        )
+        scheduler_type = TaskConfig.scheduler
+        if TaskConfig.scheduler in dir(torch.optim.lr_scheduler):
+            scheduler = getattr(torch.optim.lr_scheduler, scheduler_type)(
+                optimizer, **TaskConfig.scheduler_params
+            )
+        elif TaskConfig.scheduler in dir(transformers.optimization):
+            scheduler = getattr(transformers.optimization, scheduler_type)(
+                optimizer, **TaskConfig.scheduler_params
+            )
+        else:
+            raise ModuleNotFoundError(f"Unknown scheduler '{scheduler_type}'")
 
     for epoch in range(N_EPOCHS):
+        if TaskConfig.scheduler is not None:
+            scheduler.step()
+
         model.train()
         train_losses = []
         train_grads = []
@@ -136,21 +152,42 @@ def main(args):
 
             val_losses.append(loss.item())
 
+        example_batch = next(iter(val_loader))
+        with torch.no_grad():
+            predicted_mels, _ = model(example_batch)
+        predicted_wavs = vocoder.inference(
+            predicted_mels.transpose(1, 2).to(DEVICE)
+        ).cpu()
+
+        audios = [
+            wandb.Audio(
+                predicted_wavs[i].numpy(),
+                sample_rate=MelSpectrogramConfig.sr,
+                caption=example_batch['transcripts'][i]
+            ) for i in range(TaskConfig.examples_cnt)
+        ]
+
+        melspecs = [
+            wandb.Image(
+                predicted_mels[i].numpy(),
+                caption=example_batch['transcripts'][i]
+            ) for i in range(TaskConfig.examples_cnt)
+        ]
+
         wandb.log(
             {
                 "epoch": epoch,
                 "train_loss": np.mean(train_losses),
                 "val_loss": np.mean(val_losses),
                 "grad_norm": np.mean(train_grads),
-                "lr": optimizer.param_groups[0]['lr']
+                "lr": optimizer.param_groups[0]['lr'],
+                "val_audios": audios,
+                "val_melspecs": melspecs
             }
         )
 
         if epoch % TaskConfig.save_period:
             torch.save(model.cpu(), os.path.join(save_path, f"e{epoch}"))
-
-        if TaskConfig.scheduler is not None:
-            scheduler.step()
 
     run.finish()
 

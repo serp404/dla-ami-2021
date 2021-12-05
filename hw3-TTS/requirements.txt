@@ -3,3 +3,4 @@ librosa
 googledrivedownloader
 wandb
 matplotlib
+transformers

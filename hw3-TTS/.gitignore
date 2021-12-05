@@ -2,3 +2,4 @@ hw_tts/data/
 hw_tts/log/
 waveglow/
 */__pycache__/
+.ipynb_checkpoints/
