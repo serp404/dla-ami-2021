@@ -62,7 +62,7 @@ class FastSpeech(nn.Module):
         ).squeeze()
 
         if durations is None:
-            durations_predicted = torch.exp(log_durations_predicted)
+            durations_predicted = torch.exp(log_durations_predicted) - 1.
             durations = torch.maximum(
                 durations_predicted * self.alpha,
                 torch.ones_like(durations_predicted)

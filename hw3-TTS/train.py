@@ -1,7 +1,9 @@
+import os
 import sys
 import argparse
 import warnings
 import random
+from torch.nn.modules.module import T
 import wandb
 
 import torch
@@ -80,7 +82,9 @@ def main(args):
         )
 
     wandb.login()
-    wandb.init(project="tts_project", entity="serp404")
+    run = wandb.init(project="tts_project", entity="serp404")
+    save_path = os.path.join(TaskConfig.save_dir, run.name)
+    os.mkdir(save_path)
 
     for epoch in range(N_EPOCHS):
         model.train()
@@ -97,7 +101,7 @@ def main(args):
                 mels_pred=mels[:, :max_mel_len],
                 mels_true=batch["melspecs"][:, :max_mel_len].to(DEVICE),
                 durs_pred=durs * pad_tok_mask,
-                durs_true=torch.log(
+                durs_true=torch.log1p(
                     batch["durations"].float().to(DEVICE)
                 ) * pad_tok_mask
             )
@@ -125,7 +129,7 @@ def main(args):
                 mels_pred=mels[:, :max_mel_len],
                 mels_true=batch["melspecs"][:, :max_mel_len].to(DEVICE),
                 durs_pred=durs * pad_tok_mask,
-                durs_true=torch.log(
+                durs_true=torch.log1p(
                     batch["durations"].float().to(DEVICE)
                 ) * pad_tok_mask
             )
@@ -142,8 +146,13 @@ def main(args):
             }
         )
 
+        if epoch % TaskConfig.save_period:
+            torch.save(model.cpu(), os.path.join(save_path, f"e{epoch}"))
+
         if TaskConfig.scheduler is not None:
             scheduler.step()
+
+    run.finish()
 
 
 if __name__ == "__main__":
