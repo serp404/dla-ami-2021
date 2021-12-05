@@ -43,6 +43,11 @@ def main(args):
     N_EPOCHS = TaskConfig.n_epochs
     BATCH_SIZE = TaskConfig.batch_size
 
+    wandb.login()
+    run = wandb.init(project="tts_project", entity="serp404")
+    save_path = os.path.join(TaskConfig.save_dir, run.name)
+    os.mkdir(save_path)
+
     train_loader, val_loader = prepare_dataloaders(
         batch_size=BATCH_SIZE,
         train_size=TaskConfig.train_size,
@@ -80,11 +85,6 @@ def main(args):
         scheduler = getattr(torch.optim.lr_scheduler, TaskConfig.scheduler)(
             optimizer, **TaskConfig.scheduler_params
         )
-
-    wandb.login()
-    run = wandb.init(project="tts_project", entity="serp404")
-    save_path = os.path.join(TaskConfig.save_dir, run.name)
-    os.mkdir(save_path)
 
     for epoch in range(N_EPOCHS):
         model.train()
