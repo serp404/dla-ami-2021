@@ -75,4 +75,4 @@ class FastSpeech(nn.Module):
         flattend_states = pad_sequence(flattend_states, batch_first=True)
         flattend_states += self.pos_encoding(flattend_states)
 
-        return self.decoder_layers(flattend_states), durations_predicted
+        return self.decoder_layers(flattend_states), log_durations_predicted
