@@ -3,9 +3,9 @@ import typing as tp
 
 class TaskConfig:
     # Train options
-    n_epochs: int = 5
+    n_epochs: int = 100
     batch_size: int = 32
-    dataloader_workers: int = 4
+    dataloader_workers: int = 8
     train_size: float = 0.8
     l1_weight: float = 1.
     l2_weight: float = 1.
@@ -43,4 +43,4 @@ class TaskConfig:
     # Checkpoint
     save_period: int = 5
     save_dir: str = "./hw_tts/log/"
-    examples_cnt: int = 4
+    examples_cnt: int = 5
