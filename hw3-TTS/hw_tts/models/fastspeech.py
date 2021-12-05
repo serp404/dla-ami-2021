@@ -24,7 +24,7 @@ class FastSpeech(nn.Module):
 
         self.pos_encoding = PositionalEncoding(
             emb_size=d_model,
-            maxlen=500000
+            maxlen=5000
         )
 
         self.encoder_layers = nn.Sequential(
