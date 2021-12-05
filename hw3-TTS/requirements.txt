@@ -1,6 +1,7 @@
 librosa
 googledrivedownloader
-torch==1.10.0+cu111 torchaudio==0.10.0+cu111 -f https://download.pytorch.org/whl/torch_stable.html
+torch==1.10.0
+torchaudio==0.10.0
 wandb
 matplotlib
 numpy==1.20.0
