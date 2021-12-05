@@ -161,7 +161,7 @@ def main(args):
 
         audios = [
             wandb.Audio(
-                predicted_wavs[i].numpy(),
+                predicted_wavs[i].cpu().numpy(),
                 sample_rate=MelSpectrogramConfig.sr,
                 caption=example_batch['transcripts'][i]
             ) for i in range(TaskConfig.examples_cnt)
@@ -169,7 +169,7 @@ def main(args):
 
         melspecs = [
             wandb.Image(
-                predicted_mels[i].numpy(),
+                predicted_mels[i].cpu().numpy(),
                 caption=example_batch['transcripts'][i]
             ) for i in range(TaskConfig.examples_cnt)
         ]
