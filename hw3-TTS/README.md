@@ -25,3 +25,9 @@ python train.py --device cuda
 ```shell
 python test.py --modelpath ./data/model.pth --testpath test_sentences.txt --device cuda
 ```
+
+## Materials
+
+Отчет о работе, веса модели, а также предсказанные тестовые аудио можно найти на гугл-диске:
+
+<https://drive.google.com/drive/folders/1uxgskU4OUPN-74LBD5bw4YXSYsNATYBU?usp=sharing>

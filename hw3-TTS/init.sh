@@ -6,4 +6,5 @@ mv LJSpeech-1.1/ hw_tts/data/
 mv LJSpeech-1.1.tar.bz2 hw_tts/data/
 git clone https://github.com/NVIDIA/waveglow.git
 pip install -r requirements.txt
+gdown --id 1_6kfyG4ZG1luSVhmFwgeJ4bQfe8IBMy7
 gdown --id 1sOoj2OH7tWvgTqHtQKt_E3t2KVO_Mo23
