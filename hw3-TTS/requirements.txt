@@ -4,3 +4,4 @@ googledrivedownloader
 wandb
 matplotlib
 transformers
+gdown
