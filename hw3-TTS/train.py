@@ -188,7 +188,7 @@ def main(args):
         )
 
         if epoch % TaskConfig.save_period == 0:
-            torch.save(model, os.path.join(save_path, f"e{epoch}"))
+            torch.save(model.state_dict(), os.path.join(save_path, f"e{epoch}.pth"))
 
     run.finish()
 
