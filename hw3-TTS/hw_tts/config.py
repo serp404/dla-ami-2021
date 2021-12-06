@@ -3,9 +3,9 @@ import typing as tp
 
 class TaskConfig:
     # Train options
-    n_epochs: int = 100
+    n_epochs: int = 60
     batch_size: int = 16
-    dataloader_workers: int = 8
+    dataloader_workers: int = 16
     train_size: float = 0.8
     l1_weight: float = 1.
     l2_weight: float = 1.
@@ -34,10 +34,10 @@ class TaskConfig:
         "betas": (0.9, 0.98),
         "eps": 1e-9
     }
-    scheduler: tp.Optional[str] = "get_linear_schedule_with_warmup"
+    scheduler: tp.Optional[str] = "get_cosine_schedule_with_warmup"
     scheduler_params: tp.Dict[str, tp.Any] = {
-        "num_warmup_steps": 10,
-        "num_training_steps": 100
+        "num_warmup_steps": 6,
+        "num_training_steps": 70
     }
 
     # Checkpoint
