@@ -76,7 +76,7 @@ def main(args):
         predicted_mels.transpose(1, 2).to(DEVICE)
     ).cpu()
 
-    for i, waveform in predicted_wavs:
+    for i, waveform in enumerate(predicted_wavs):
         path = os.path.join(outputdir_opt, f"test_wav_{i}.wav")
         torchaudio.save(path, waveform, MelSpectrogramConfig.sr)
 
