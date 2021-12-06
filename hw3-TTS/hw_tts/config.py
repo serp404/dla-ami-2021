@@ -27,10 +27,10 @@ class TaskConfig:
     }
 
     # Optimization options
-    grad_clip: tp.Optional[float] = 10.
+    grad_clip: tp.Optional[float] = 5.
     optimizer: str = "Adam"
     optimizer_params: tp.Dict[str, tp.Any] = {
-        "lr": 0.0008,
+        "lr": 0.0005,
         "betas": (0.9, 0.98),
         "eps": 1e-9
     }
