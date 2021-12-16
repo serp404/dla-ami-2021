@@ -24,10 +24,9 @@ class Generator(torch.nn.Module):
             padding="same"
         )
 
-        self.upsample_layers = nn.ModuleList()
-        self.mrf_layers = nn.ModuleList()
+        self.main_layers = nn.ModuleList()
         for i in range(self.n_layers):
-            self.upsample_layers.append(
+            self.main_layers.append(
                 nn.Sequential(
                     nn.LeakyReLU(negative_slope=slope),
                     nn.ConvTranspose1d(
@@ -36,20 +35,13 @@ class Generator(torch.nn.Module):
                         kernel_size=kernels_u[i],
                         stride=kernels_u[i] // 2,
                         padding=kernels_u[i] // 4
+                    ),
+                    MRFBlock(
+                        channels=channels_u // (2**(i+1)),
+                        kernel=kernels_r[i],
+                        dilations=dilations_r,
+                        slope=slope
                     )
-                )
-            )
-
-            self.mrf_layers.append(
-                nn.ModuleList(
-                    [
-                        MRFBlock(
-                            channels=channels_u // (2**(i+1)),
-                            kernel=kernels_r[j],
-                            dilations=dilations_r[j],
-                            slope=slope
-                        )
-                    ] for j in range(len(kernels_r))
                 )
             )
 
@@ -69,9 +61,8 @@ class Generator(torch.nn.Module):
 
     def forward(self, x):
         x = self.initial_layers(x)
-        for upsample, mrfs in zip(self.upsample_layers, self.mrf_layers):
-            x = upsample(x)
-            x = sum((m(x) for m in mrfs)) / len(mrfs)
+        for m in self.main_layers:
+            x = m(x)
         return self.output_layers(x)
 
 

@@ -8,20 +8,31 @@ from hw_nv.utils import normilize_weights, init_weights
 
 class MRFBlock(torch.nn.Module):
     def __init__(
-        self, channels: int, kernel: int = 3,
-        dilations: tp.Tuple[tp.Union[int, tp.Tuple[int]]] = (1, 3, 5),
+        self, channels: int, kernel: int,
+        dilations: tp.Tuple[tp.Tuple[int]],
         slope: float = 0.1
     ) -> None:
 
         super().__init__()
 
         n_layers = len(dilations)
-        self.convnet = nn.ModuleList([
+        self.convnet1 = nn.ModuleList([
             nn.Sequential(
                 nn.LeakyReLU(negative_slope=slope),
                 nn.Conv1d(
                     in_channels=channels, out_channels=channels,
-                    kernel_size=kernel, dilation=dilations[i],
+                    kernel_size=kernel, dilation=dilations[i][0],
+                    padding="same"
+                )
+            ) for i in range(n_layers)
+        ])
+
+        self.convnet2 = nn.ModuleList([
+            nn.Sequential(
+                nn.LeakyReLU(negative_slope=slope),
+                nn.Conv1d(
+                    in_channels=channels, out_channels=channels,
+                    kernel_size=kernel, dilation=dilations[i][1],
                     padding="same"
                 )
             ) for i in range(n_layers)
@@ -30,8 +41,9 @@ class MRFBlock(torch.nn.Module):
         self.apply(init_weights)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        for block in self.convnet:
-            x = block(x) + x
+        for block1, block2 in zip(self.convnet1, self.convnet2):
+            xr = block2(block1(x))
+            x = x + xr
         return x
 
 
