@@ -7,16 +7,6 @@ from hw_nv.models.layers import PeriodDiscriminator, ScaleDiscriminator
 from hw_nv.utils import init_weights
 from hw_nv.utils.utils import normilize_weights
 
-# model V3
-h_u = 256
-k_u = (16, 16, 8)
-k_r = (3, 5, 7)
-d_r = ((1, 2), (2, 6), (3, 12))
-
-# resblock_kernel_sizes = k_r
-# upsample_kernel_sizes = k_u
-# upsample_initial_channel = h_u
-
 
 class Generator(torch.nn.Module):
     def __init__(
@@ -34,9 +24,10 @@ class Generator(torch.nn.Module):
             padding="same"
         )
 
-        self.main_layers = nn.ModuleList()
+        self.upsample_layers = nn.ModuleList()
+        self.mrf_layers = nn.ModuleList()
         for i in range(self.n_layers):
-            self.main_layers.append(
+            self.upsample_layers.append(
                 nn.Sequential(
                     nn.LeakyReLU(negative_slope=slope),
                     nn.ConvTranspose1d(
@@ -45,13 +36,20 @@ class Generator(torch.nn.Module):
                         kernel_size=kernels_u[i],
                         stride=kernels_u[i] // 2,
                         padding=kernels_u[i] // 4
-                    ),
-                    MRFBlock(
-                        channels=channels_u // (2**(i+1)),
-                        kernel=kernels_r[i],
-                        dilations=dilations_r[i],
-                        slope=slope
                     )
+                )
+            )
+
+            self.mrf_layers.append(
+                nn.ModuleList(
+                    [
+                        MRFBlock(
+                            channels=channels_u // (2**(i+1)),
+                            kernel=kernels_r[j],
+                            dilations=dilations_r[j],
+                            slope=slope
+                        )
+                    ] for j in range(len(kernels_r))
                 )
             )
 
@@ -71,8 +69,9 @@ class Generator(torch.nn.Module):
 
     def forward(self, x):
         x = self.initial_layers(x)
-        for m in self.main_layers:
-            x = m(x)
+        for upsample, mrfs in zip(self.upsample_layers, self.mrf_layers):
+            x = upsample(x)
+            x = sum((m(x) for m in mrfs)) / len(mrfs)
         return self.output_layers(x)
 
 
