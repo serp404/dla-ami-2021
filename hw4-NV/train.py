@@ -39,7 +39,6 @@ def main(args):
         DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     N_EPOCHS = TaskConfig.n_epochs
-    BATCH_SIZE = TaskConfig.batch_size
 
     wandb.login()
     run = wandb.init(
@@ -52,9 +51,7 @@ def main(args):
         os.mkdir(save_path)
 
     train_loader, val_loader = prepare_dataloaders(
-        batch_size=BATCH_SIZE,
-        train_size=TaskConfig.train_size,
-        num_workers=TaskConfig.dataloader_workers
+        **TaskConfig.dataloaders_params
     )
 
     gen = Generator(**TaskConfig.gen_params).to(DEVICE)
