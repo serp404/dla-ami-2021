@@ -39,6 +39,7 @@ def main(args):
         DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     N_EPOCHS = TaskConfig.n_epochs
+    BATCH_SIZE = TaskConfig.dataloaders_params["batch_size"]
 
     wandb.login()
     run = wandb.init(
@@ -119,9 +120,10 @@ def main(args):
         train_grads_gen = []
         train_grads_dis = []
         for batch in tqdm(train_loader, desc=f"Training epoch {epoch}"):
-            n_samples = batch["waveforms"].shape[0]
-            mels_real = batch["melspecs"].to(DEVICE)
-            wavs_real = batch["waveforms"].unsqueeze(dim=1).to(DEVICE)
+            mels_real = batch["melspecs"][:BATCH_SIZE].to(DEVICE)
+            wavs_real = batch["waveforms"][:BATCH_SIZE] \
+                .unsqueeze(dim=1).to(DEVICE)
+            n_samples = wavs_real.shape[0]
 
             wavs_fake = gen(mels_real)
             mels_fake = mel_featurizer(
@@ -179,9 +181,10 @@ def main(args):
         val_losses_dis = []
         with torch.no_grad():
             for batch in tqdm(val_loader, desc=f"Validating epoch {epoch}"):
-                n_samples = batch["waveforms"].shape[0]
-                mels_real = batch["melspecs"].to(DEVICE)
-                wavs_real = batch["waveforms"].unsqueeze(dim=1).to(DEVICE)
+                mels_real = batch["melspecs"][:BATCH_SIZE].to(DEVICE)
+                wavs_real = batch["waveforms"][:BATCH_SIZE] \
+                    .unsqueeze(dim=1).to(DEVICE)
+                n_samples = wavs_real.shape[0]
 
                 wavs_fake = gen(mels_real)
                 mels_fake = mel_featurizer(

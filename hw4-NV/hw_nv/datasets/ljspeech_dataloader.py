@@ -8,7 +8,7 @@ from hw_nv.datasets.collator import collate_fn
 def prepare_dataloaders(
     batch_size, train_size=0.8, num_workers=1, max_len=8192
 ):
-    dataset = LJSpeechDataset(root='./hw_nv/data/', max_wav_len=max_len)
+    dataset = LJSpeechDataset(root='./hw_nv/data/')
     total_len = len(dataset)
 
     train_len = int(train_size * total_len)

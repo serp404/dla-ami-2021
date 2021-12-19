@@ -4,12 +4,11 @@ import typing as tp
 class TaskConfig:
     # Train options
     n_epochs: int = 6000
-
+    max_wav_len: int = 8192
     dataloaders_params: tp.Dict[str, tp.Any] = {
         "batch_size": 16,
         "train_size": 0.8,
-        "num_workers": 8,
-        "max_len": 8192
+        "num_workers": 8
     }
 
     # Model options

@@ -1,37 +1,41 @@
-import torch
 import typing as tp
 from torch.nn.utils.rnn import pad_sequence
 
-from hw_nv.melspecs import MelSpectrogramConfig
+from hw_nv.utils.utils import split_wav
+from hw_nv.melspecs import MelSpectrogram, MelSpectrogramConfig
+from hw_nv.config import TaskConfig
+
+
+featurizer = MelSpectrogram(MelSpectrogramConfig())
+max_wav_len = TaskConfig.max_wav_len
 
 
 def collate_fn(samples: tp.List[tp.Dict[str, tp.Any]]) -> tp.Dict[str, tp.Any]:
-    transcripts = [it["transcript"] for it in samples]
-    waveforms = pad_sequence(
-        [it["waveform"] for it in samples],
-        batch_first=True
+    transcripts = []
+    waveforms = []
+    melspecs = []
+
+    for it in samples:
+        for s in split_wav(
+            wav=it["waveform"], text=it["transcript"],
+            featurizer=featurizer, max_len=max_wav_len
+        ):
+            transcripts.append(s["transcript"])
+            waveforms.append(s["waveform"])
+            melspecs.append(s["melspec"])
+
+    waveforms_tensor = pad_sequence(
+        waveforms, batch_first=True
     )
 
-    waveforms_lengths = torch.cat(
-        [it["waveform_length"] for it in samples],
-        dim=0
-    )
-
-    melspecs = pad_sequence(
-        [it["melspec"].transpose(-2, -1) for it in samples],
+    melspecs_tensor = pad_sequence(
+        [it.transpose(-2, -1) for it in melspecs],
         batch_first=True,
         padding_value=MelSpectrogramConfig.pad_value
     ).transpose(-2, -1)
 
-    melspecs_lengths = torch.cat(
-        [it["melspec_length"] for it in samples],
-        dim=0
-    )
-
     return {
         "transcripts": transcripts,
-        "waveforms": waveforms,
-        "waveforms_lengths": waveforms_lengths,
-        "melspecs": melspecs,
-        "melspecs_lengths": melspecs_lengths
+        "waveforms": waveforms_tensor,
+        "melspecs": melspecs_tensor
     }

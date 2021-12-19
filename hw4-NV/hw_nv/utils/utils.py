@@ -51,18 +51,12 @@ def split_wav(wav, text, featurizer, max_len):
     wav_parts = []
     for part in torch.split(wav, max_len, dim=1):
         if part.shape[-1] >= max_len // 10:
-            waveform_length = torch.tensor([part.shape[-1]])
-
             melspec = featurizer(part)
-            melspec_length = torch.tensor([melspec.shape[-1]])
-
             wav_parts.append(
                 {
                     "transcript": text,
                     "waveform": part.squeeze(dim=0),
-                    "waveform_length": waveform_length.long(),
-                    "melspec": melspec.squeeze(dim=0),
-                    "melspec_length": melspec_length.long()
+                    "melspec": melspec.squeeze(dim=0)
                 }
             )
     return wav_parts
