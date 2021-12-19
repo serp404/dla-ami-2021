@@ -151,7 +151,11 @@ def main(args):
             optimizer_dis.step()
 
             # generator
-            loss_gen = 45. * l1_criterion(mels_real, mels_fake)
+            max_len = min(mels_real.shape[-1], mels_fake.shape[-1])
+            loss_gen = 45. * l1_criterion(
+                mels_real[:, :, :max_len],
+                mels_fake[:, :, :max_len]
+            )
             for d in dis:
                 preds_real, fmaps_real = d(wavs_real)
                 preds_fake, fmaps_fake = d(wavs_fake)
@@ -199,7 +203,11 @@ def main(args):
                     loss_dis += l2_criterion(preds_fake, fake_labels)
 
                 # generator
-                loss_gen = 45. * l1_criterion(mels_real, mels_fake)
+                max_len = min(mels_real.shape[-1], mels_fake.shape[-1])
+                loss_gen = 45. * l1_criterion(
+                    mels_real[:, :, :max_len],
+                    mels_fake[:, :, :max_len]
+                )
                 for d in dis:
                     preds_real, fmaps_real = d(wavs_real)
                     preds_fake, fmaps_fake = d(wavs_fake)
