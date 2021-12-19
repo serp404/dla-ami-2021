@@ -162,7 +162,7 @@ def main(args):
                 loss_gen += l2_criterion(preds_fake, real_labels)
                 for fms_r, fms_f in zip(fmaps_real, fmaps_fake):
                     for fm_r, fm_f in zip(fms_r, fms_f):
-                        max_len = min(fm_r.shape[-1], fms_f.shape[-1])
+                        max_len = min(fm_r.shape[-1], fm_f.shape[-1])
                         loss_gen += 2. * l2_criterion(
                             fm_r[:, :, :max_len],
                             fm_f[:, :, :max_len]
@@ -218,7 +218,7 @@ def main(args):
                     loss_gen += l2_criterion(preds_fake, real_labels)
                     for fms_r, fms_f in zip(fmaps_real, fmaps_fake):
                         for fm_r, fm_f in zip(fms_r, fms_f):
-                            max_len = min(fm_r.shape[-1], fms_f.shape[-1])
+                            max_len = min(fm_r.shape[-1], fm_f.shape[-1])
                             loss_gen += 2. * l2_criterion(
                                 fm_r[:, :, :max_len],
                                 fm_f[:, :, :max_len]
