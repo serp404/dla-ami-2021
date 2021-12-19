@@ -118,9 +118,7 @@ def main(args):
         train_losses_dis = []
         train_grads_gen = []
         train_grads_dis = []
-        for i, batch in tqdm(enumerate(train_loader), desc=f"Training epoch {epoch}"):
-            if i > 1:
-                break
+        for batch in tqdm(train_loader, desc=f"Training epoch {epoch}"):
             n_samples = batch["waveforms"].shape[0]
             mels_real = batch["melspecs"].to(DEVICE)
             wavs_real = batch["waveforms"].unsqueeze(dim=1).to(DEVICE)
@@ -180,9 +178,7 @@ def main(args):
         val_losses_gen = []
         val_losses_dis = []
         with torch.no_grad():
-            for i, batch in tqdm(enumerate(val_loader), desc=f"Validating epoch {epoch}"):
-                if i > 1:
-                    break
+            for batch in tqdm(val_loader, desc=f"Validating epoch {epoch}"):
                 n_samples = batch["waveforms"].shape[0]
                 mels_real = batch["melspecs"].to(DEVICE)
                 wavs_real = batch["waveforms"].unsqueeze(dim=1).to(DEVICE)

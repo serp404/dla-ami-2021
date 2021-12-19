@@ -3,12 +3,12 @@ import typing as tp
 
 class TaskConfig:
     # Train options
-    n_epochs: int = 2
+    n_epochs: int = 6000
 
     dataloaders_params: tp.Dict[str, tp.Any] = {
-        "batch_size": 2,
+        "batch_size": 16,
         "train_size": 0.8,
-        "num_workers": 4,
+        "num_workers": 8,
         "length_sampler": True
     }
 
@@ -45,6 +45,6 @@ class TaskConfig:
     scheduler_dis_params: tp.Dict[str, tp.Any] = {"gamma": 0.999}
 
     # Checkpoint
-    save_period: int = 1
+    save_period: int = 100
     save_dir: str = "./hw_nv/log/"
-    examples_cnt: int = 1
+    examples_cnt: int = 5
