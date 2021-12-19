@@ -4,8 +4,7 @@ import typing as tp
 
 from hw_nv.models.layers import MRFBlock
 from hw_nv.models.layers import PeriodDiscriminator, ScaleDiscriminator
-from hw_nv.utils import init_weights
-from hw_nv.utils.utils import normilize_weights
+from hw_nv.utils import init_normal_weights, normilize_simple_weights
 
 
 class Generator(torch.nn.Module):
@@ -56,8 +55,8 @@ class Generator(torch.nn.Module):
             nn.Tanh()
         )
 
-        self.apply(init_weights)
-        self.apply(normilize_weights)
+        self.apply(init_normal_weights)
+        self.apply(normilize_simple_weights)
 
     def forward(self, x):
         x = self.initial_layers(x)
@@ -67,36 +66,34 @@ class Generator(torch.nn.Module):
 
 
 class MultiPeriodDiscriminator(torch.nn.Module):
-    def __init__(self, periods=(2, 3, 5, 7, 11)):
+    def __init__(self, periods=(2, 3, 5, 7, 11), slope=0.1):
         super().__init__()
         self.discriminators = nn.ModuleList([
-            PeriodDiscriminator(period=p) for p in periods
+            PeriodDiscriminator(period=p, slope=slope) for p in periods
         ])
 
     def forward(self, y):
-        return torch.cat(
-            [d(y) for d in self.discriminators],
-            dim=-1
-        )
+        preds, fmaps = zip(*[d(y) for d in self.discriminators])
+        return torch.cat(preds, dim=1).mean(dim=1), fmaps
 
 
 class MultiScaleDiscriminator(torch.nn.Module):
-    def __init__(self):
+    def __init__(self, slope=0.1):
         super().__init__()
         self.discriminators = nn.ModuleList([
-            ScaleDiscriminator(),
-            ScaleDiscriminator(),
-            ScaleDiscriminator(),
+            ScaleDiscriminator(slope=0.1),
+            ScaleDiscriminator(slope=0.1),
+            ScaleDiscriminator(slope=0.1),
         ])
 
         self.pools = nn.ModuleList([
             nn.Identity(),
-            nn.AvgPool1d(kernel_siz=2, stride=2, padding=2),
-            nn.AvgPool1d(kernel_size=4, stride=4, padding=4)
+            nn.AvgPool1d(kernel_size=2, stride=2, padding=1),
+            nn.AvgPool1d(kernel_size=4, stride=4, padding=2)
         ])
 
     def forward(self, y):
-        return torch.cat(
-            [d(pool(y)) for pool, d in zip(self.pools, self.discriminators)],
-            dim=-1
+        preds, fmaps = zip(
+            *[d(pool(y)) for pool, d in zip(self.pools, self.discriminators)]
         )
+        return torch.cat(preds, dim=1).mean(dim=1), fmaps
