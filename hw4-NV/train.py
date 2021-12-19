@@ -228,8 +228,9 @@ def main(args):
                 val_losses_gen.append(loss_gen.item())
 
         example_batch = next(iter(val_loader))
+        mels_real = example_batch["melspecs"].to(DEVICE)
         with torch.no_grad():
-            predicted_wavs = gen(example_batch).squeeze(dim=1)
+            predicted_wavs = gen(mels_real).squeeze(dim=1)
         predicted_mels = mel_featurizer(wavs_fake.cpu()).to(DEVICE)
 
         audios = [
