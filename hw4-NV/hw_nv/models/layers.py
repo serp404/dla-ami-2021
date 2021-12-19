@@ -3,6 +3,8 @@ import torch.nn as nn
 import torch.nn.functional as F
 import typing as tp
 
+from hw_nv.utils import normilize_simple_weights, normilize_spectral_weights
+
 
 class MRFBlock(torch.nn.Module):
     def __init__(
@@ -44,9 +46,12 @@ class MRFBlock(torch.nn.Module):
 
 
 class PeriodDiscriminator(torch.nn.Module):
-    def __init__(self, period, slope=0.1):
+    def __init__(self, period, slope=0.1, norm="simple"):
         super().__init__()
         self.period = period
+        weight_norm = normilize_simple_weights if norm == "simple" \
+            else normilize_spectral_weights
+
         self.main_layers = nn.ModuleList([
             *sum(
                 [
@@ -62,8 +67,7 @@ class PeriodDiscriminator(torch.nn.Module):
                             nn.LeakyReLU(negative_slope=slope)
                         )
                     ] for i in range(4)
-                ],
-                start=[]
+                ], []
             ),
             nn.Sequential(
                 nn.Conv2d(
@@ -82,6 +86,8 @@ class PeriodDiscriminator(torch.nn.Module):
             nn.Flatten(start_dim=1)
         )
 
+        self.apply(weight_norm)
+
     def forward(self, x):
         batch_size, n_channels, seq_len = x.shape
         pad_size = self.period - (seq_len % self.period)
@@ -98,8 +104,10 @@ class PeriodDiscriminator(torch.nn.Module):
 
 
 class ScaleDiscriminator(torch.nn.Module):
-    def __init__(self, slope=0.1):
+    def __init__(self, slope=0.1, norm="simple"):
         super().__init__()
+        weight_norm = normilize_simple_weights if norm == "simple" \
+            else normilize_spectral_weights
 
         self.main_layers = nn.ModuleList([
             nn.Sequential(
@@ -136,6 +144,8 @@ class ScaleDiscriminator(torch.nn.Module):
             nn.Conv1d(1024, 1, 3, 1, padding=1),
             nn.Flatten(start_dim=1)
         )
+
+        self.apply(weight_norm)
 
     def forward(self, x):
         fmaps = []

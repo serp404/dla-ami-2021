@@ -55,8 +55,8 @@ class Generator(torch.nn.Module):
             nn.Tanh()
         )
 
-        self.apply(init_normal_weights)
         self.apply(normilize_simple_weights)
+        self.apply(init_normal_weights)
 
     def forward(self, x):
         x = self.initial_layers(x)
@@ -81,7 +81,7 @@ class MultiScaleDiscriminator(torch.nn.Module):
     def __init__(self, slope=0.1):
         super().__init__()
         self.discriminators = nn.ModuleList([
-            ScaleDiscriminator(slope=0.1),
+            ScaleDiscriminator(slope=0.1, norm="spectral"),
             ScaleDiscriminator(slope=0.1),
             ScaleDiscriminator(slope=0.1),
         ])
