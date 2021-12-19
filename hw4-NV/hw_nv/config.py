@@ -6,10 +6,10 @@ class TaskConfig:
     n_epochs: int = 6000
 
     dataloaders_params: tp.Dict[str, tp.Any] = {
-        "batch_size": 8,
+        "batch_size": 16,
         "train_size": 0.8,
         "num_workers": 8,
-        "length_sampler": True
+        "max_len": 8192
     }
 
     # Model options
