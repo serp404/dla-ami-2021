@@ -23,7 +23,7 @@ class LJSpeechDataset(torchaudio.datasets.LJSPEECH):
             )
 
         self.processed_data = sum(
-            list(Parallel(n_jobs=16, verbose=True)(
+            list(Parallel(n_jobs=32, verbose=True)(
                 delayed(preprocessing)(i) for i in range(super().__len__())
             )), []
         )
