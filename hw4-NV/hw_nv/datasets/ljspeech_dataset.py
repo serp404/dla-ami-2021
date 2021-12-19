@@ -7,12 +7,14 @@ from hw_nv.utils.utils import split_wav
 
 class LJSpeechDataset(torchaudio.datasets.LJSPEECH):
     def __init__(self, root: str, max_wav_len: int):
-        super().__init__(root=root)
+        super(LJSpeechDataset, self).__init__(root=root)
         self.featurizer = MelSpectrogram(MelSpectrogramConfig())
         self.processed_data = []
 
         def preprocessing(i):
-            waveform, _, _, transcript = super().__getitem__(i)
+            waveform, _, _, transcript = super(
+                LJSpeechDataset, self
+            ).__getitem__(i)
             return split_wav(
                 wav=waveform,
                 text=transcript,
