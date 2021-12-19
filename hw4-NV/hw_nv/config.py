@@ -44,4 +44,4 @@ class TaskConfig:
     # Checkpoint
     save_period: int = 1
     save_dir: str = "./hw_nv/log/"
-    examples_cnt: int = 5
+    examples_cnt: int = 1

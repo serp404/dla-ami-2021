@@ -93,11 +93,11 @@ def main(args):
         scheduler_type = TaskConfig.scheduler_dis
         if TaskConfig.scheduler_dis in dir(torch.optim.lr_scheduler):
             scheduler_dis = getattr(torch.optim.lr_scheduler, scheduler_type)(
-                optimizer_gen, **TaskConfig.scheduler_dis_params
+                optimizer_dis, **TaskConfig.scheduler_dis_params
             )
         elif TaskConfig.scheduler_dis in dir(transformers.optimization):
             scheduler_dis = getattr(transformers.optimization, scheduler_type)(
-                optimizer_gen, **TaskConfig.scheduler_dis_params
+                optimizer_dis, **TaskConfig.scheduler_dis_params
             )
         else:
             raise ModuleNotFoundError(f"Unknown scheduler '{scheduler_type}'")
@@ -253,6 +253,8 @@ def main(args):
                 "epoch": epoch,
                 "train_loss_gen": np.mean(train_losses_gen),
                 "train_loss_dis": np.mean(train_losses_dis),
+                "val_loss_gen": np.mean(val_losses_gen),
+                "val_loss_dis": np.mean(val_losses_dis),
                 "grad_norm_gen": np.mean(train_grads_gen),
                 "grad_norm_dis": np.mean(train_grads_dis),
                 "lr_gen": optimizer_gen.param_groups[0]['lr'],
