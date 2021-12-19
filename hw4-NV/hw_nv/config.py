@@ -3,7 +3,7 @@ import typing as tp
 
 class TaskConfig:
     # Train options
-    n_epochs: int = 6000
+    n_epochs: int = 50
     max_wav_len: int = 8192
     dataloaders_params: tp.Dict[str, tp.Any] = {
         "batch_size": 16,
@@ -44,6 +44,6 @@ class TaskConfig:
     scheduler_dis_params: tp.Dict[str, tp.Any] = {"gamma": 0.999}
 
     # Checkpoint
-    save_period: int = 100
+    save_period: int = 3
     save_dir: str = "./hw_nv/log/"
     examples_cnt: int = 5

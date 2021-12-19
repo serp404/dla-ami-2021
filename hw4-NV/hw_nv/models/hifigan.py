@@ -4,7 +4,7 @@ import typing as tp
 
 from hw_nv.models.layers import MRFBlock
 from hw_nv.models.layers import PeriodDiscriminator, ScaleDiscriminator
-from hw_nv.utils import init_normal_weights, normilize_simple_weights
+from hw_nv.utils.utils import init_normal_weights, normilize_simple_weights
 
 
 class Generator(torch.nn.Module):

@@ -3,7 +3,8 @@ import torch.nn as nn
 import torch.nn.functional as F
 import typing as tp
 
-from hw_nv.utils import normilize_simple_weights, normilize_spectral_weights
+from hw_nv.utils.utils import normilize_simple_weights,\
+    normilize_spectral_weights
 
 
 class MRFBlock(torch.nn.Module):
