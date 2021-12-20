@@ -53,6 +53,9 @@ def main(args):
         for mels in test_mels:
             predicted_wavs.append(gen(mels.to(DEVICE)).cpu())
 
+    if not os.path.exists(outputdir_opt):
+        os.mkdir(outputdir_opt)
+
     for i, waveform in enumerate(predicted_wavs):
         path = os.path.join(outputdir_opt, f"test_wav_{i}.wav")
         torchaudio.save(
