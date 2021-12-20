@@ -6,3 +6,4 @@ mv LJSpeech-1.1 hw_nv/data/
 mv LJSpeech-1.1.tar.bz2 hw_nv/data/
 mkdir hw_nv/log/
 pip install -r requirements.txt
+gdown --id 1rk_3vtLtDzwCmj0wfsr99FhR6wlekR_r
