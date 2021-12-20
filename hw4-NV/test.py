@@ -59,7 +59,7 @@ def main(args):
     for i, waveform in enumerate(predicted_wavs):
         path = os.path.join(outputdir_opt, f"test_wav_{i}.wav")
         torchaudio.save(
-            path, waveform.unsqueeze(dim=0),
+            path, waveform.squeeze(dim=0),
             MelSpectrogramConfig.sr
         )
 
